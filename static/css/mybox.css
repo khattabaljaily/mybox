@@ -880,6 +880,7 @@ html { scroll-behavior: smooth; }
     display: flex;
     flex-direction: column;
     margin: .5rem auto 1.5rem;
+    border: 2px solid #f6a821;
     border-radius: 1.5rem;
     background: var(--mb-surface);
     box-shadow: var(--mb-shadow-hover);
@@ -895,16 +896,15 @@ html { scroll-behavior: smooth; }
     position: relative;
     overflow: hidden;
     z-index: 2;
-    width: 80%;
+    border-radius: 0 0 1rem 1.5rem;
     margin: auto;
-    border-radius: 0 0 1.5rem 1.5rem;
-    padding: 0.7rem 1.75rem;
-    text-align: center;
+    width: 85%;
+    padding: 2rem 1.75rem;
     color: #fff;
     background: var(--mb-hero-gradient);
     background-size: 180% 180%;
     display: flex;
-    /* Soft, feathered "paper" shadow instead of a hard 3D drop shadow */
+    align-items: flex-end;
     box-shadow: 0 25px 40px -22px rgba(0, 0, 0, .3), 0 8px 16px -10px rgba(0, 0, 0, .16);
 }
 @media (min-width: 992px) {
@@ -912,8 +912,7 @@ html { scroll-behavior: smooth; }
         flex: 0 0 40%;
         align-self: center;
         height: 440px;
-        margin-inline-start: -1.5rem;
-        margin-inline-end: -3.5rem;
+        margin-inline-start: -5rem;
         padding: 2.5rem;
         align-items: center;
         border-radius: 1.75rem;
