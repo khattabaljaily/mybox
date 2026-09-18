@@ -28,7 +28,11 @@
             </dl>
 
             <div class="d-flex gap-2 mt-4">
-                <a href="{{ document.file.url }}" class="btn btn-primary flex-fill" target="_blank"><i class="bi bi-file-earmark-arrow-down"></i> {% trans "عرض الملف" %}</a>
+                {% if document.file_kind == 'other' %}
+                <a href="{{ document.file.url }}" class="btn btn-primary flex-fill" download><i class="bi bi-download"></i> {% trans "تحميل الملف" %}</a>
+                {% else %}
+                <button type="button" class="btn btn-primary flex-fill" data-bs-toggle="modal" data-bs-target="#mbFilePreviewModal"><i class="bi bi-eye"></i> {% trans "عرض الملف" %}</button>
+                {% endif %}
                 {% if document.expiry_date %}
                 <a href="{% url 'documents:renew' document.pk %}" class="btn btn-outline-success flex-fill"><i class="bi bi-arrow-repeat"></i> {% trans "تجديد" %}</a>
                 {% endif %}
@@ -36,6 +40,7 @@
             <div class="mb-doc-card__footer">
                 <span class="text-muted small">{{ document.created_at|date:"d M Y" }}</span>
                 <div class="mb-doc-card__actions">
+                    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#mbShareModal" title="{% trans 'مشاركة' %}"><i class="bi bi-share"></i></button>
                     <a href="{% url 'documents:edit' document.pk %}" class="btn btn-outline-secondary btn-sm" title="{% trans 'تعديل' %}"><i class="bi bi-pencil"></i></a>
                     <button type="button" class="btn btn-outline-danger btn-sm" id="mbDeleteBtn" title="{% trans 'حذف' %}"><i class="bi bi-trash"></i></button>
                 </div>
@@ -44,6 +49,68 @@
         </div>
     </div>
 </div>
+
+{% if document.file_kind != 'other' %}
+<div class="modal fade" id="mbFilePreviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content mb-preview-modal">
+            <div class="modal-header">
+                <h5 class="modal-title mb-0">{{ document.title }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'إغلاق' %}"></button>
+            </div>
+            <div class="modal-body mb-preview-body">
+                <span class="mb-spinner-inline mb-preview-spinner" id="mbPreviewSpinner"></span>
+                {% if document.file_kind == 'image' %}
+                <img id="mbPreviewMedia" data-src="{{ document.file.url }}" alt="{{ document.title }}" class="mb-preview-img d-none">
+                {% elif document.file_kind == 'pdf' %}
+                <iframe id="mbPreviewMedia" data-src="{{ document.file.url }}" class="mb-preview-frame d-none"></iframe>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <a href="{{ document.file.url }}" class="btn btn-outline-secondary btn-sm" download><i class="bi bi-download"></i> {% trans "تحميل" %}</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="modal fade" id="mbShareModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title mb-0">{% trans "مشاركة المستند" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'إغلاق' %}"></button>
+            </div>
+            <div class="modal-body">
+                {% if active_share %}
+                <label class="mb-field__label">{% trans "رابط المشاركة" %}</label>
+                <div class="input-group mb-2">
+                    <input type="text" class="form-control" id="mbShareLink" value="{{ request.scheme }}://{{ request.get_host }}{% url 'documents:shared' active_share.token %}" readonly>
+                    <button type="button" class="btn btn-outline-secondary" id="mbCopyShareLink" title="{% trans 'نسخ' %}"><i class="bi bi-clipboard"></i></button>
+                </div>
+                <div class="text-muted small mb-3">{% blocktrans with date=active_share.expires_at|date:"d M Y" %}صالح حتى {{ date }}{% endblocktrans %}</div>
+                <form method="post" action="{% url 'documents:share_revoke' document.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-danger btn-sm w-100"><i class="bi bi-x-circle"></i> {% trans "إلغاء المشاركة" %}</button>
+                </form>
+                {% else %}
+                <form method="post" action="{% url 'documents:share_create' document.pk %}">
+                    {% csrf_token %}
+                    <label class="mb-field__label">{% trans "مدة صلاحية الرابط" %}</label>
+                    <select name="duration" class="form-select mb-3">
+                        <option value="1">{% trans "يوم واحد" %}</option>
+                        <option value="7" selected>{% trans "7 أيام" %}</option>
+                        <option value="30">{% trans "30 يومًا" %}</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-link-45deg"></i> {% trans "إنشاء رابط مشاركة" %}</button>
+                </form>
+                <div class="text-muted small mt-2">{% trans "أي شخص يملك هذا الرابط يقدر يشوف الملف وينزّله حتى تاريخ انتهائه." %}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 {% block extra_js %}
 <script>
@@ -55,5 +122,34 @@
             onConfirm: function () { document.getElementById('mbDeleteForm').submit(); },
         });
     });
+
+    var mbPreviewModal = document.getElementById('mbFilePreviewModal');
+    if (mbPreviewModal) {
+        mbPreviewModal.addEventListener('show.bs.modal', function () {
+            var media = document.getElementById('mbPreviewMedia');
+            var spinner = document.getElementById('mbPreviewSpinner');
+            if (!media || media.dataset.loaded) return;
+            var reveal = function () {
+                media.dataset.loaded = '1';
+                spinner.classList.add('d-none');
+                media.classList.remove('d-none');
+            };
+            media.addEventListener('load', reveal, { once: true });
+            media.addEventListener('error', reveal, { once: true });
+            media.src = media.dataset.src;
+        });
+    }
+
+    var mbCopyShareLink = document.getElementById('mbCopyShareLink');
+    if (mbCopyShareLink) {
+        mbCopyShareLink.addEventListener('click', function () {
+            var input = document.getElementById('mbShareLink');
+            input.select();
+            navigator.clipboard.writeText(input.value).then(function () {
+                mbCopyShareLink.innerHTML = '<i class="bi bi-check2"></i>';
+                setTimeout(function () { mbCopyShareLink.innerHTML = '<i class="bi bi-clipboard"></i>'; }, 1500);
+            });
+        });
+    }
 </script>
 {% endblock %}

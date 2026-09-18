@@ -13,4 +13,7 @@ urlpatterns = [
     path('<int:pk>/edit/', views.document_edit, name='edit'),
     path('<int:pk>/delete/', views.document_delete, name='delete'),
     path('<int:pk>/renew/', views.document_renew, name='renew'),
+    path('<int:pk>/share/', views.document_share_create, name='share_create'),
+    path('<int:pk>/share/revoke/', views.document_share_revoke, name='share_revoke'),
+    path('shared/<str:token>/', views.document_shared_view, name='shared'),
 ]

@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{{ document.title }} | MyBox{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="mb-card">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <span class="mb-icon-badge" style="width:52px;height:52px;font-size:1.3rem;"><i class="bi {{ document.category.icon|default:'bi-file-earmark' }}"></i></span>
+                <div>
+                    <h4 class="mb-0">{{ document.title }}</h4>
+                    <div class="text-muted small">{% trans "مستند تمت مشاركته معك عبر MyBox" %}</div>
+                </div>
+            </div>
+
+            {% if document.file_kind == 'image' %}
+            <div class="mb-preview-body" style="border-radius: var(--mb-radius);">
+                <img src="{{ document.file.url }}" alt="{{ document.title }}" class="mb-preview-img">
+            </div>
+            {% elif document.file_kind == 'pdf' %}
+            <div class="mb-preview-body" style="border-radius: var(--mb-radius);">
+                <iframe src="{{ document.file.url }}" class="mb-preview-frame"></iframe>
+            </div>
+            {% endif %}
+
+            <a href="{{ document.file.url }}" class="btn btn-primary w-100 mt-3" download><i class="bi bi-download"></i> {% trans "تحميل الملف" %}</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

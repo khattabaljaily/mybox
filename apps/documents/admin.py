@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Category, Document, Entity
+from .models import Category, Document, DocumentShare, Entity
 
 
 @admin.register(Category)
@@ -20,3 +20,9 @@ class DocumentAdmin(admin.ModelAdmin):
     list_display = ['title', 'owner', 'category', 'expiry_date']
     list_filter = ['category']
     search_fields = ['title', 'tags']
+
+
+@admin.register(DocumentShare)
+class DocumentShareAdmin(admin.ModelAdmin):
+    list_display = ['document', 'created_at', 'expires_at']
+    search_fields = ['document__title', 'token']

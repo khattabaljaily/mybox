@@ -4,14 +4,15 @@
 {% block auth_title %}{% trans "حساب جديد" %}{% endblock %}
 {% block auth_subtitle %}<div class="text-muted small">{% trans "خزّن مستنداتك وابدأ بمتابعة تواريخ انتهاء صلاحيتها." %}</div>{% endblock %}
 {% block auth_body %}
+{% trans "اسم المستخدم" as mb_username_placeholder %}
 <form method="post" novalidate>
     {% csrf_token %}
-    {% with cls=form.username|field_class:"mb-field__input" %}
+    {% with cls=form.username|field_class:"mb-field__input" attr_arg="placeholder:"|add:mb_username_placeholder %}
     <div class="mb-field">
         <label class="mb-field__label" for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
         <div class="mb-field__control">
             <i class="bi bi-person"></i>
-            {{ form.username|add_class:cls|attr:"placeholder:اسم المستخدم" }}
+            {{ form.username|add_class:cls|attr:attr_arg }}
         </div>
         {% for error in form.username.errors %}<div class="mb-field__error"><i class="bi bi-exclamation-circle"></i> {{ error }}</div>{% endfor %}
     </div>

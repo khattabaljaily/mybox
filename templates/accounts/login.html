@@ -1,18 +1,22 @@
 {% extends 'accounts/base_auth.html' %}
 {% load i18n widget_tweaks %}
 {% block title %}{% trans "تسجيل الدخول" %} | MyBox{% endblock %}
+{% block auth_title %}{% trans "تسجيل الدخول" %}{% endblock %}
 {% block auth_subtitle %}<div class="text-muted small" id="mbGreeting">{% trans "مرحبًا بعودتك." %}</div>{% endblock %}
 {% block auth_body %}
 {% for error in form.non_field_errors %}
 <div class="mb-alert mb-alert--danger mb-3"><i class="bi bi-exclamation-octagon-fill"></i> {{ error }}</div>
 {% endfor %}
+{% trans "اسم المستخدم" as mb_username_placeholder %}
 <form method="post" novalidate>
     {% csrf_token %}
     <div class="mb-field">
         <label class="mb-field__label" for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
         <div class="mb-field__control">
             <i class="bi bi-person"></i>
-            {{ form.username|add_class:"mb-field__input"|attr:"placeholder:اسم المستخدم" }}
+            {% with attr_arg="placeholder:"|add:mb_username_placeholder %}
+            {{ form.username|add_class:"mb-field__input"|attr:attr_arg }}
+            {% endwith %}
         </div>
     </div>
     <div class="mb-field">

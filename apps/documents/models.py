@@ -1,8 +1,13 @@
+import os
+import secrets
+
 from django.conf import settings
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import get_language, gettext_lazy as _
+
+IMAGE_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'}
 
 
 class Category(models.Model):
@@ -114,3 +119,49 @@ class Document(models.Model):
     @property
     def file_name(self):
         return self.file.name.rsplit('/', 1)[-1] if self.file else ''
+
+    @property
+    def file_kind(self):
+        """'image', 'pdf', or 'other' — used to decide whether the file can be
+        previewed inline (in a modal) or should just be offered as a download."""
+        if not self.file:
+            return 'other'
+        ext = os.path.splitext(self.file.name)[1].lower()
+        if ext == '.pdf':
+            return 'pdf'
+        if ext in IMAGE_EXTENSIONS:
+            return 'image'
+        return 'other'
+
+
+class DocumentShare(models.Model):
+    """A time-limited link that lets anyone who has it view/download one document
+    without an account. Creating a new one for a document replaces any existing
+    link (see views.document_share_create) — there's only ever one active link."""
+
+    document = models.ForeignKey(
+        Document, on_delete=models.CASCADE, related_name='shares', verbose_name=_('المستند'),
+    )
+    token = models.CharField(max_length=43, unique=True, editable=False, verbose_name=_('الرمز'))
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(verbose_name=_('تاريخ الانتهاء'))
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = _('رابط مشاركة')
+        verbose_name_plural = _('روابط المشاركة')
+
+    def __str__(self):
+        return f'{self.document} -> {self.token}'
+
+    def save(self, *args, **kwargs):
+        if not self.token:
+            self.token = secrets.token_urlsafe(24)
+        super().save(*args, **kwargs)
+
+    @property
+    def is_expired(self):
+        return timezone.now() > self.expires_at
+
+    def get_absolute_url(self):
+        return reverse('documents:shared', args=[self.token])

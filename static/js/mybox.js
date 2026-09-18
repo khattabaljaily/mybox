@@ -1,3 +1,46 @@
+// ---------- UI strings (kept out of the .po catalog since these are plain JS,
+// not templates — keyed off <html lang>, which Django sets from LANGUAGE_CODE) ----------
+var MB_T = (function () {
+    var strings = {
+        ar: {
+            installTitle: 'ثبّت التطبيق',
+            installDescIOS: 'اضغط على زر المشاركة ثم اختر "إضافة إلى الشاشة الرئيسية"',
+            installDescDesktop: 'ثبّت التطبيق على جهازك للوصول السريع',
+            installBtn: 'ثبّت',
+            installDismiss: 'رفض',
+            closeAria: 'إغلاق',
+            greetingMorning: 'صباح الخير',
+            greetingAfternoon: 'مساء الخير',
+            greetingNight: 'ليلة سعيدة',
+            greetingWelcomeBack: 'مرحبًا بعودتك.',
+            showPassword: 'إظهار كلمة المرور',
+            hidePassword: 'إخفاء كلمة المرور',
+            pwLevels: ['ضعيفة جدًا', 'ضعيفة', 'متوسطة', 'قوية'],
+            pwMatch: 'كلمتا المرور متطابقتان',
+            pwNoMatch: 'كلمتا المرور غير متطابقتين',
+        },
+        en: {
+            installTitle: 'Install the app',
+            installDescIOS: 'Tap the Share button, then choose "Add to Home Screen"',
+            installDescDesktop: 'Install the app on your device for quick access',
+            installBtn: 'Install',
+            installDismiss: 'Dismiss',
+            closeAria: 'Close',
+            greetingMorning: 'Good morning',
+            greetingAfternoon: 'Good afternoon',
+            greetingNight: 'Good night',
+            greetingWelcomeBack: 'Welcome back.',
+            showPassword: 'Show password',
+            hidePassword: 'Hide password',
+            pwLevels: ['Very weak', 'Weak', 'Medium', 'Strong'],
+            pwMatch: 'Passwords match',
+            pwNoMatch: 'Passwords do not match',
+        },
+    };
+    var lang = (document.documentElement.getAttribute('lang') || 'ar').slice(0, 2);
+    return strings[lang] || strings.ar;
+})();
+
 // ---------- Global page loader (reference-counted, shown on navigation) ----------
 var MBSpinner = (function () {
     var _el = null;
@@ -338,20 +381,20 @@ function mbInitFileDrop(dropId) {
             '<div class="mb-pwa-banner__content">' +
                 '<div class="mb-pwa-banner__icon"><i class="bi bi-download"></i></div>' +
                 '<div class="mb-pwa-banner__text">' +
-                    '<div class="mb-pwa-banner__title">ثبّت التطبيق</div>' +
-                    '<div class="mb-pwa-banner__description">اضغط على <i class="bi bi-box-arrow-up"></i> ثم اختر "إضافة إلى الشاشة الرئيسية"</div>' +
+                    '<div class="mb-pwa-banner__title">' + MB_T.installTitle + '</div>' +
+                    '<div class="mb-pwa-banner__description">' + MB_T.installDescIOS + '</div>' +
                 '</div>' +
-                '<button type="button" class="mb-pwa-banner__close" aria-label="إغلاق"><i class="bi bi-x-lg"></i></button>' +
+                '<button type="button" class="mb-pwa-banner__close" aria-label="' + MB_T.closeAria + '"><i class="bi bi-x-lg"></i></button>' +
             '</div>' :
             '<div class="mb-pwa-banner__content">' +
                 '<div class="mb-pwa-banner__icon"><i class="bi bi-download"></i></div>' +
                 '<div class="mb-pwa-banner__text">' +
-                    '<div class="mb-pwa-banner__title">ثبّت التطبيق</div>' +
-                    '<div class="mb-pwa-banner__description">ثبّت التطبيق على جهازك للوصول السريع</div>' +
+                    '<div class="mb-pwa-banner__title">' + MB_T.installTitle + '</div>' +
+                    '<div class="mb-pwa-banner__description">' + MB_T.installDescDesktop + '</div>' +
                 '</div>' +
                 '<div class="mb-pwa-banner__actions">' +
-                    '<button type="button" class="mb-pwa-banner__btn mb-pwa-banner__btn--primary" data-action="install">ثبّت</button>' +
-                    '<button type="button" class="mb-pwa-banner__btn mb-pwa-banner__btn--secondary" data-action="dismiss">رفض</button>' +
+                    '<button type="button" class="mb-pwa-banner__btn mb-pwa-banner__btn--primary" data-action="install">' + MB_T.installBtn + '</button>' +
+                    '<button type="button" class="mb-pwa-banner__btn mb-pwa-banner__btn--secondary" data-action="dismiss">' + MB_T.installDismiss + '</button>' +
                 '</div>' +
             '</div>';
 
@@ -400,8 +443,8 @@ function mbInitFileDrop(dropId) {
     var greeting = document.getElementById('mbGreeting');
     if (greeting) {
         var hour = new Date().getHours();
-        var prefix = hour < 5 ? 'ليلة سعيدة' : hour < 12 ? 'صباح الخير' : hour < 17 ? 'مساء الخير' : hour < 21 ? 'مساء الخير' : 'ليلة سعيدة';
-        greeting.textContent = prefix + '، مرحبًا بعودتك.';
+        var prefix = hour < 5 ? MB_T.greetingNight : hour < 12 ? MB_T.greetingMorning : hour < 21 ? MB_T.greetingAfternoon : MB_T.greetingNight;
+        greeting.textContent = prefix + '. ' + MB_T.greetingWelcomeBack;
     }
 
     // Show/hide password
@@ -411,14 +454,14 @@ function mbInitFileDrop(dropId) {
         var btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'mb-pw-toggle';
-        btn.setAttribute('aria-label', 'إظهار كلمة المرور');
+        btn.setAttribute('aria-label', MB_T.showPassword);
         btn.innerHTML = '<i class="bi bi-eye"></i>';
         wrap.appendChild(btn);
         btn.addEventListener('click', function () {
             var showing = input.type === 'text';
             input.type = showing ? 'password' : 'text';
             btn.innerHTML = showing ? '<i class="bi bi-eye"></i>' : '<i class="bi bi-eye-slash"></i>';
-            btn.setAttribute('aria-label', showing ? 'إظهار كلمة المرور' : 'إخفاء كلمة المرور');
+            btn.setAttribute('aria-label', showing ? MB_T.showPassword : MB_T.hidePassword);
         });
     });
 
@@ -437,7 +480,7 @@ function mbInitFileDrop(dropId) {
 
         var segs = meter.querySelectorAll('.mb-pw-meter__seg');
         var label = meter.querySelector('.mb-pw-meter__label');
-        var levels = ['ضعيفة جدًا', 'ضعيفة', 'متوسطة', 'قوية'];
+        var levels = MB_T.pwLevels;
         var icons = ['bi-shield-x', 'bi-shield-exclamation', 'bi-shield-check', 'bi-shield-fill-check'];
 
         primaryPw.addEventListener('input', function () {
@@ -477,8 +520,8 @@ function mbInitFileDrop(dropId) {
             var ok = first.value === second.value;
             indicator.className = 'mb-pw-match mb-pw-match--visible ' + (ok ? 'mb-pw-match--ok' : 'mb-pw-match--no');
             indicator.innerHTML = ok
-                ? '<i class="bi bi-check-circle-fill"></i> كلمتا المرور متطابقتان'
-                : '<i class="bi bi-x-circle-fill"></i> كلمتا المرور غير متطابقتين';
+                ? '<i class="bi bi-check-circle-fill"></i> ' + MB_T.pwMatch
+                : '<i class="bi bi-x-circle-fill"></i> ' + MB_T.pwNoMatch;
         }
         second.addEventListener('input', checkMatch);
         first.addEventListener('input', function () { if (second.value) checkMatch(); });

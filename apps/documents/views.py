@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import FileResponse
@@ -10,9 +12,11 @@ from django.db.models import Q
 
 from . import services
 from .forms import DocumentForm
-from .models import Category, Document
+from .models import Category, Document, DocumentShare
 
 EXPIRY_SOON_DAYS = 30
+SHARE_DURATION_DAYS = {'1': 1, '7': 7, '30': 30}
+SHARE_DEFAULT_DURATION = 7
 
 
 @login_required
@@ -51,7 +55,8 @@ def document_list(request):
 @login_required
 def document_detail(request, pk):
     document = get_object_or_404(Document, pk=pk, owner=request.user)
-    return render(request, 'documents/detail.html', {'document': document})
+    active_share = document.shares.filter(expires_at__gt=timezone.now()).first()
+    return render(request, 'documents/detail.html', {'document': document, 'active_share': active_share})
 
 
 @login_required
@@ -110,3 +115,30 @@ def archive_export(request):
     documents = Document.objects.filter(owner=request.user)
     buffer = services.build_archive(documents)
     return FileResponse(buffer, as_attachment=True, filename='mybox-archive.zip')
+
+
+@login_required
+@require_POST
+def document_share_create(request, pk):
+    document = get_object_or_404(Document, pk=pk, owner=request.user)
+    days = SHARE_DURATION_DAYS.get(request.POST.get('duration'), SHARE_DEFAULT_DURATION)
+    document.shares.all().delete()
+    DocumentShare.objects.create(document=document, expires_at=timezone.now() + timedelta(days=days))
+    messages.success(request, _('تم إنشاء رابط المشاركة.'))
+    return redirect('documents:detail', pk=document.pk)
+
+
+@login_required
+@require_POST
+def document_share_revoke(request, pk):
+    document = get_object_or_404(Document, pk=pk, owner=request.user)
+    document.shares.all().delete()
+    messages.success(request, _('تم إلغاء رابط المشاركة.'))
+    return redirect('documents:detail', pk=document.pk)
+
+
+def document_shared_view(request, token):
+    share = get_object_or_404(DocumentShare, token=token)
+    if share.is_expired:
+        return render(request, 'documents/shared_expired.html', status=410)
+    return render(request, 'documents/shared.html', {'document': share.document})

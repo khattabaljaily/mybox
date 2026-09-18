@@ -122,11 +122,11 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Internationalization — Arabic-only for now; English comes back once translations
-# are filled in (re-add ('en', 'English') to LANGUAGES and the navbar switcher then).
+# Internationalization
 LANGUAGE_CODE = 'ar'
 LANGUAGES = [
     ('ar', 'العربية'),
+    ('en', 'English'),
 ]
 LOCALE_PATHS = [BASE_DIR / 'locale']
 TIME_ZONE = 'Africa/Cairo'

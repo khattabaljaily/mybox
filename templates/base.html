@@ -44,6 +44,13 @@
                 MyBox
             </a>
             <div class="d-flex align-items-center gap-2 mb-navbar__actions order-lg-3">
+                <form action="{% url 'set_language' %}" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button type="submit" name="language" value="{% if LANGUAGE_CODE == 'ar' %}en{% else %}ar{% endif %}" class="mb-icon-btn mb-lang-toggle" aria-label="{% trans 'اللغة' %}" title="{% trans 'اللغة' %}">
+                        {% if LANGUAGE_CODE == 'ar' %}EN{% else %}AR{% endif %}
+                    </button>
+                </form>
                 <button type="button" class="mb-icon-btn" id="mbThemeToggle" aria-label="{% trans 'تبديل المظهر' %}" title="{% trans 'تبديل المظهر' %}">
                     <i class="bi bi-sun-fill" id="mbThemeIconLight"></i>
                     <i class="bi bi-moon-stars-fill d-none" id="mbThemeIconDark"></i>
