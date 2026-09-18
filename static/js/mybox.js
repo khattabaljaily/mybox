@@ -208,6 +208,18 @@ document.addEventListener('submit', function (e) {
         var form = e.target;
         var btn = form.querySelector('button[type="submit"]');
         if (!btn || btn.disabled) return;
+        // Disabling the button that triggered submission can strip its own
+        // name/value from the submitted form data (or cancel the submit
+        // outright) in some browsers — e.g. the language-toggle button,
+        // whose value:"ar"/"en" IS the form's payload. A hidden input copy
+        // keeps that data flowing regardless of the button's disabled state.
+        if (btn.name) {
+            var hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            hidden.name = btn.name;
+            hidden.value = btn.value;
+            form.appendChild(hidden);
+        }
         btn.disabled = true;
         btn.dataset.originalHtml = btn.innerHTML;
         btn.innerHTML = '<span class="mb-spinner-inline"></span> ' + btn.textContent.trim();
