@@ -1,7 +1,6 @@
 {% extends 'accounts/base_auth.html' %}
 {% load i18n widget_tweaks %}
 {% block title %}{% trans "تسجيل الدخول" %} | MyBox{% endblock %}
-{% block auth_title %}{% trans "تسجيل الدخول" %}{% endblock %}
 {% block auth_subtitle %}<div class="text-muted small" id="mbGreeting">{% trans "مرحبًا بعودتك." %}</div>{% endblock %}
 {% block auth_body %}
 {% for error in form.non_field_errors %}
