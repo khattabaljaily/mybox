@@ -1,0 +1,29 @@
+{% extends 'accounts/base_auth.html' %}
+{% load i18n widget_tweaks %}
+{% block title %}{% trans "رمز التحقق" %} | MyBox{% endblock %}
+{% block auth_title %}{% trans "تحقق من هويتك" %}{% endblock %}
+{% block auth_subtitle %}<div class="text-muted small">{% blocktrans %}أرسلنا رمزًا مكونًا من 6 أرقام إلى {{ email }}{% endblocktrans %}</div>{% endblock %}
+{% block auth_body %}
+{% for error in form.non_field_errors %}
+<div class="mb-alert mb-alert--danger mb-3"><i class="bi bi-exclamation-octagon-fill"></i> {{ error }}</div>
+{% endfor %}
+<form method="post" novalidate>
+    {% csrf_token %}
+    <div class="mb-field">
+        <label class="mb-field__label" for="{{ form.code.id_for_label }}">{{ form.code.label }}</label>
+        <div class="mb-field__control">
+            <i class="bi bi-shield-lock"></i>
+            {{ form.code|add_class:"mb-field__input"|attr:"placeholder:••••••"|attr:"autofocus:autofocus" }}
+        </div>
+        {% for error in form.code.errors %}<div class="mb-field__error"><i class="bi bi-exclamation-circle"></i> {{ error }}</div>{% endfor %}
+    </div>
+    <button type="submit" class="btn btn-primary w-100 mt-2"><i class="bi bi-check-circle"></i> {% trans "تأكيد" %}</button>
+</form>
+<form method="post" class="text-center mt-3">
+    {% csrf_token %}
+    <button type="submit" name="resend" value="1" class="btn btn-link btn-sm p-0">{% trans "إعادة إرسال الرمز" %}</button>
+</form>
+<p class="text-center mt-2 mb-0 small">
+    <a href="{% url 'accounts:login' %}" class="text-muted">{% trans "الرجوع لتسجيل الدخول" %}</a>
+</p>
+{% endblock %}

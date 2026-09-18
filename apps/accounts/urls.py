@@ -7,6 +7,7 @@ app_name = 'accounts'
 
 urlpatterns = [
     path('login/', views.MyBoxLoginView.as_view(), name='login'),
+    path('login/verify/', views.login_otp_verify, name='login_otp'),
     path('logout/', views.MyBoxLogoutView.as_view(), name='logout'),
     path('register/', views.register, name='register'),
 

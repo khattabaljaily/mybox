@@ -26,3 +26,16 @@ class RegisterForm(UserCreationForm):
 class LoginForm(AuthenticationForm):
     username = forms.CharField(label=_('اسم المستخدم'))
     password = forms.CharField(label=_('كلمة المرور'), widget=forms.PasswordInput)
+
+
+class OTPForm(forms.Form):
+    code = forms.CharField(
+        label=_('رمز التحقق'), min_length=6, max_length=6,
+        widget=forms.TextInput(attrs={'inputmode': 'numeric', 'autocomplete': 'one-time-code'}),
+    )
+
+    def clean_code(self):
+        code = self.cleaned_data['code'].strip()
+        if not code.isdigit():
+            raise forms.ValidationError(_('الرمز يجب أن يتكون من أرقام فقط.'))
+        return code

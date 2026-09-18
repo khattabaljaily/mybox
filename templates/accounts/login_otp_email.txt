@@ -1,0 +1,7 @@
+{% load i18n %}{% trans "مرحبًا،" %}
+
+{% trans "رمز الدخول إلى حسابك في MyBox هو:" %}
+
+{{ code }}
+
+{% blocktrans %}هذا الرمز صالح لمدة {{ validity_minutes }} دقائق. إذا لم تحاول تسجيل الدخول، تجاهل هذه الرسالة.{% endblocktrans %}
