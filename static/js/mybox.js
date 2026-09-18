@@ -406,7 +406,7 @@ function mbInitFileDrop(dropId) {
 
     // Show/hide password
     card.querySelectorAll('input[type="password"]').forEach(function (input) {
-        var wrap = input.closest('.form-floating');
+        var wrap = input.closest('.mb-field__control');
         if (!wrap) return;
         var btn = document.createElement('button');
         btn.type = 'button';
@@ -433,7 +433,7 @@ function mbInitFileDrop(dropId) {
                 '<div class="mb-pw-meter__seg"></div><div class="mb-pw-meter__seg"></div>' +
             '</div>' +
             '<div class="mb-pw-meter__label"></div>';
-        primaryPw.closest('.form-floating').insertAdjacentElement('afterend', meter);
+        primaryPw.closest('.mb-field').insertAdjacentElement('afterend', meter);
 
         var segs = meter.querySelectorAll('.mb-pw-meter__seg');
         var label = meter.querySelector('.mb-pw-meter__label');
@@ -470,7 +470,7 @@ function mbInitFileDrop(dropId) {
 
         var indicator = document.createElement('div');
         indicator.className = 'mb-pw-match';
-        second.closest('.form-floating').insertAdjacentElement('afterend', indicator);
+        second.closest('.mb-field').insertAdjacentElement('afterend', indicator);
 
         function checkMatch() {
             if (!second.value) { indicator.className = 'mb-pw-match'; return; }
@@ -484,27 +484,4 @@ function mbInitFileDrop(dropId) {
         first.addEventListener('input', function () { if (second.value) checkMatch(); });
     });
 
-    // Cursor-reactive tilt + orb parallax (desktop, fine pointer, motion allowed)
-    var wrap = document.querySelector('.mb-auth-wrap');
-    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var finePointer = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
-    if (wrap && !reduceMotion && finePointer) {
-        var orbs = wrap.querySelectorAll('.mb-auth-orb');
-        wrap.addEventListener('mousemove', function (e) {
-            var rect = card.getBoundingClientRect();
-            var cx = rect.left + rect.width / 2;
-            var cy = rect.top + rect.height / 2;
-            var dx = (e.clientX - cx) / (rect.width / 2);
-            var dy = (e.clientY - cy) / (rect.height / 2);
-            card.style.transform = 'perspective(1000px) rotateY(' + (dx * 3.5) + 'deg) rotateX(' + (dy * -3.5) + 'deg)';
-            orbs.forEach(function (orb, i) {
-                var f = i % 2 === 0 ? 14 : -14;
-                orb.style.transform = 'translate(' + (dx * f) + 'px, ' + (dy * f) + 'px)';
-            });
-        });
-        wrap.addEventListener('mouseleave', function () {
-            card.style.transform = '';
-            orbs.forEach(function (orb) { orb.style.transform = ''; });
-        });
-    }
 })();

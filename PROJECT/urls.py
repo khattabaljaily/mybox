@@ -6,7 +6,7 @@ from django.views.static import serve as serve_static
 from apps.core.views import service_worker
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('DDQR9KHA/', admin.site.urls),
     path('sw.js', service_worker, name='service_worker'),
     path('i18n/', include('django.conf.urls.i18n')),
     path('', include('apps.core.urls')),
