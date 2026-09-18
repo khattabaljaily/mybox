@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+{% block content %}
+<div class="mb-hero">
+    <div class="mb-hero__icon"><img src="{% static 'img/logo.png' %}" alt="MyBox"></div>
+    <h1>MyBox</h1>
+    <p>{% trans "خزنتك الرقمية لكل مستنداتك المهمة — هوية، عقود، تأمين وشهادات، منظمة في مكان واحد ومحمية من فوات مواعيد الصلاحية." %}</p>
+    <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-lg"><i class="bi bi-arrow-left-circle"></i> {% trans "ابدأ مجانًا" %}</a>
+</div>
+
+<div class="mb-feature-grid">
+    <div class="mb-feature">
+        <span class="mb-icon-badge"><i class="bi bi-folder2-open"></i></span>
+        <h5>{% trans "كل مستنداتك في مكان واحد" %}</h5>
+        <p>{% trans "ارفع، صنّف، وابحث عن أي مستند في ثوانٍ." %}</p>
+    </div>
+    <div class="mb-feature">
+        <span class="mb-icon-badge"><i class="bi bi-bell-fill"></i></span>
+        <h5>{% trans "تنبيهات ذكية" %}</h5>
+        <p>{% trans "نذكّرك قبل انتهاء أي مستند بوقت كافٍ للتجديد." %}</p>
+    </div>
+    <div class="mb-feature">
+        <span class="mb-icon-badge"><i class="bi bi-download"></i></span>
+        <h5>{% trans "أرشيف قابل للتصدير" %}</h5>
+        <p>{% trans "حمّل نسخة احتياطية من كل مستنداتك بضغطة واحدة." %}</p>
+    </div>
+</div>
+{% endblock %}

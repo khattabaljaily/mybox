@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "الرئيسية" %} | MyBox{% endblock %}
+{% block content %}
+<div class="mb-welcome mb-3">
+    <div>
+        <h4 class="mb-1">{% blocktrans with name=user.get_short_name|default:user.username %}مرحبًا، {{ name }}{% endblocktrans %} <span class="mb-welcome__wave">👋</span></h4>
+        <div class="text-muted small">{% trans "خزنتك الرقمية — جميع مستنداتك محفوظة ومتابَعة بعناية." %}</div>
+    </div>
+</div>
+
+<div class="row g-2 mb-4">
+    <div class="col-6">
+        <a href="{% url 'documents:list' %}" class="btn btn-primary w-100"><i class="bi bi-folder2-open"></i> {% trans "مستنداتي" %}</a>
+    </div>
+    <div class="col-6">
+        <a href="{% url 'documents:create' %}" class="btn btn-primary w-100"><i class="bi bi-plus-lg"></i> {% trans "إضافة مستند" %}</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="mb-stat">
+            <span class="mb-stat__icon"><i class="bi bi-folder2"></i></span>
+            <div>
+                <div class="mb-stat__value mb-count" data-count="{{ total_count }}">0</div>
+                <div class="mb-stat__label">{% trans "إجمالي المستندات" %}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="mb-stat mb-stat--warning">
+            <span class="mb-stat__icon"><i class="bi bi-hourglass-split"></i></span>
+            <div>
+                <div class="mb-stat__value mb-count" data-count="{{ expiring_soon|length }}">0</div>
+                <div class="mb-stat__label">{% trans "تنتهي خلال 30 يوم" %}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="mb-stat mb-stat--danger">
+            <span class="mb-stat__icon"><i class="bi bi-exclamation-triangle"></i></span>
+            <div>
+                <div class="mb-stat__value mb-count" data-count="{{ expired_count }}">0</div>
+                <div class="mb-stat__label">{% trans "منتهية" %}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if total_count == 0 %}
+<div class="mb-card mb-empty mb-empty--cta">
+    <i class="bi bi-shield-plus"></i>
+    <h5 class="mt-2 mb-1">{% trans "الخزنة فارغة حتى الآن" %}</h5>
+    <p class="text-muted mb-3">{% trans "ابدأ بإضافة مستندك الأول، وسنتابع تاريخ انتهاء صلاحيته تلقائيًا." %}</p>
+    <a href="{% url 'documents:create' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {% trans "أضف مستندك الأول" %}</a>
+</div>
+{% else %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0">{% trans "الأقرب للانتهاء" %}</h5>
+    <a href="{% url 'documents:list' %}" class="small fw-semibold mb-link-arrow" style="color: var(--mb-primary);">{% trans "عرض الكل" %} <i class="bi bi-arrow-left"></i></a>
+</div>
+
+{% if expiring_soon %}
+<div class="row g-3">
+    {% for document in expiring_soon %}
+    <div class="col-md-6 col-lg-4">
+        <div class="mb-card mb-doc-card mb-reveal {% if document.days_to_expiry <= 7 %}mb-doc-card--danger{% else %}mb-doc-card--warning{% endif %}" style="transition-delay: {{ forloop.counter0 }}00ms">
+            <div class="mb-doc-card__top">
+                <div>
+                    <div class="mb-doc-card__title"><a href="{% url 'documents:detail' document.pk %}" class="text-decoration-none" style="color: inherit;">{{ document.title }}</a></div>
+                    <div class="text-muted small">{{ document.category|default:"—" }}</div>
+                </div>
+                <span class="mb-icon-badge"><i class="bi {{ document.category.icon|default:'bi-file-earmark' }}"></i></span>
+            </div>
+            <div class="mt-3">
+                <span class="mb-pill {% if document.days_to_expiry <= 7 %}mb-pill--danger{% else %}mb-pill--warning{% endif %}">
+                    <i class="bi bi-clock-history"></i>
+                    {% blocktrans count days=document.days_to_expiry %}يوم واحد متبقي{% plural %}{{ days }} يوم متبقي{% endblocktrans %}
+                </span>
+            </div>
+            <div class="mb-doc-card__footer">
+                <a href="{% url 'documents:renew' document.pk %}" class="btn btn-outline-success btn-sm"><i class="bi bi-arrow-repeat"></i> {% trans "تجديد" %}</a>
+                <div class="mb-doc-card__actions">
+                    <a href="{% url 'documents:edit' document.pk %}" class="btn btn-outline-secondary btn-sm" title="{% trans 'تعديل' %}"><i class="bi bi-pencil"></i></a>
+                    <button type="button" class="btn btn-outline-danger btn-sm mb-doc-delete" title="{% trans 'حذف' %}" data-title="{{ document.title }}" data-url="{% url 'documents:delete' document.pk %}"><i class="bi bi-trash"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="mb-card mb-empty">
+    <i class="bi bi-emoji-sunglasses"></i>
+    {% trans "لا توجد مستندات قريبة من الانتهاء حاليًا." %}
+</div>
+{% endif %}
+{% endif %}
+<form method="post" id="mbDocDeleteForm" class="d-none">{% csrf_token %}</form>
+{% endblock %}
+{% block extra_js %}
+<script>
+    document.querySelectorAll('.mb-doc-delete').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            mbConfirm({
+                title: '{% trans "حذف المستند" %}',
+                message: '{% blocktrans %}هل تريد حذف{% endblocktrans %} "' + btn.dataset.title + '"؟',
+                confirmLabel: '{% trans "حذف" %}',
+                onConfirm: function () {
+                    var form = document.getElementById('mbDocDeleteForm');
+                    form.action = btn.dataset.url;
+                    form.submit();
+                },
+            });
+        });
+    });
+</script>
+{% endblock %}

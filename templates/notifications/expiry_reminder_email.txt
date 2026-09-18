@@ -1,0 +1,5 @@
+{% load i18n %}{% trans "مرحبًا،" %}
+
+{% blocktrans with title=document.title expiry=document.expiry_date %}مستند "{{ title }}" في MyBox سينتهي خلال {{ days_before }} يوم (بتاريخ {{ expiry }}). يُرجى رفع المستند الجديد في أقرب وقت.{% endblocktrans %}
+
+{{ renew_url }}

@@ -1,0 +1,13 @@
+{% load i18n %}
+{% if notifications %}
+    {% for n in notifications %}
+    <a href="{{ n.url|default:'#' }}" class="dropdown-item {% if not n.is_read %}fw-bold{% endif %}">
+        <div class="small">{{ n.title }}</div>
+        <div class="text-muted" style="font-size: .8rem;">{{ n.message }}</div>
+    </a>
+    {% endfor %}
+    <div class="dropdown-divider"></div>
+    <a href="{% url 'notifications:list' %}" class="dropdown-item text-center small">{% trans "عرض كل الإشعارات" %}</a>
+{% else %}
+    <div class="text-center text-muted py-4 small">{% trans "لا توجد إشعارات" %}</div>
+{% endif %}

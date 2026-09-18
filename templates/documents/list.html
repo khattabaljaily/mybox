@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "مستنداتي" %} | MyBox{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+    <span class="mb-icon-badge" style="width:52px;height:52px;font-size:1.3rem;"><i class="bi bi-folder2-open"></i></span>
+    <div class="flex-grow-1">
+        <h4 class="mb-0">{% trans "مستنداتي" %}</h4>
+        <div class="text-muted small">{% blocktrans count total=documents.count %}مستند واحد محفوظ{% plural %}{{ total }} مستند محفوظ{% endblocktrans %}</div>
+    </div>
+    <a href="{% url 'documents:create' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> {% trans "إضافة" %}</a>
+</div>
+
+<div class="mb-card mb-4">
+    <form method="get" class="d-flex gap-2">
+        <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="{% trans 'ابحث بالعنوان...' %}">
+        <button type="submit" class="btn btn-outline-secondary" style="width: 42px; height: 42px; padding: 0; flex-shrink: 0;" aria-label="{% trans 'بحث' %}"><i class="bi bi-search"></i></button>
+    </form>
+
+    {% if categories %}
+    <div class="mb-category-scroller mt-3">
+        <a href="{% url 'documents:list' %}" class="mb-pill mb-pill--filter {% if not selected_category %}mb-pill--filter-active{% endif %}">{% trans "الكل" %}</a>
+        {% for category in categories %}
+        <a href="?category={{ category.pk }}" class="mb-pill mb-pill--filter {% if selected_category == category.pk|stringformat:'s' %}mb-pill--filter-active{% endif %}">
+            <i class="bi {{ category.icon }}"></i> {{ category.name }}
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+{% if documents %}
+<div class="row g-3">
+    {% for document in documents %}
+    <div class="col-md-6 col-lg-4">
+        <div class="mb-card mb-doc-card mb-reveal {% if document.is_expired %}mb-doc-card--danger{% endif %}" style="transition-delay: {{ forloop.counter0 }}00ms">
+            <div class="mb-doc-card__top">
+                <div>
+                    <div class="mb-doc-card__title"><a href="{% url 'documents:detail' document.pk %}" class="text-decoration-none" style="color: inherit;">{{ document.title }}</a></div>
+                    <div class="text-muted small">{{ document.category|default:"—" }}{% if document.entity %} · {{ document.entity }}{% endif %}</div>
+                </div>
+                <span class="mb-icon-badge"><i class="bi {{ document.category.icon|default:'bi-file-earmark' }}"></i></span>
+            </div>
+            <div class="mb-doc-card__footer">
+                {% if document.expiry_date %}
+                <span class="mb-pill {% if document.is_expired %}mb-pill--danger{% else %}mb-pill--muted{% endif %}">
+                    <i class="bi bi-calendar-event"></i> {{ document.expiry_date }}
+                    {% if document.is_expired %} · {% trans "منتهي" %}{% endif %}
+                </span>
+                {% endif %}
+                <div class="mb-doc-card__actions">
+                    <a href="{% url 'documents:edit' document.pk %}" class="btn btn-outline-secondary btn-sm" title="{% trans 'تعديل' %}"><i class="bi bi-pencil"></i></a>
+                    <button type="button" class="btn btn-outline-danger btn-sm mb-doc-delete" title="{% trans 'حذف' %}" data-title="{{ document.title }}" data-url="{% url 'documents:delete' document.pk %}"><i class="bi bi-trash"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="mb-card mb-empty">
+    <i class="bi bi-inbox"></i>
+    {% trans "لا توجد مستندات بعد." %}
+</div>
+{% endif %}
+<form method="post" id="mbDocDeleteForm" class="d-none">{% csrf_token %}</form>
+{% endblock %}
+{% block extra_js %}
+<script>
+    document.querySelectorAll('.mb-doc-delete').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            mbConfirm({
+                title: '{% trans "حذف المستند" %}',
+                message: '{% blocktrans %}هل تريد حذف{% endblocktrans %} "' + btn.dataset.title + '"؟',
+                confirmLabel: '{% trans "حذف" %}',
+                onConfirm: function () {
+                    var form = document.getElementById('mbDocDeleteForm');
+                    form.action = btn.dataset.url;
+                    form.submit();
+                },
+            });
+        });
+    });
+</script>
+{% endblock %}

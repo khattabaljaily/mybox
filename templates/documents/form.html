@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% load i18n widget_tweaks form_extras %}
+{% block title %}{% if is_create %}{% trans "إضافة مستند" %}{% else %}{% trans "تعديل مستند" %}{% endif %} | MyBox{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="d-flex align-items-center gap-3 mb-4">
+            <span class="mb-icon-badge" style="width:52px;height:52px;font-size:1.3rem;"><i class="bi {% if is_create %}bi-file-earmark-plus{% else %}bi-pencil-square{% endif %}"></i></span>
+            <div>
+                <h4 class="mb-0">{% if is_create %}{% trans "إضافة مستند جديد" %}{% else %}{% trans "تعديل المستند" %}{% endif %}</h4>
+                <div class="text-muted small">{% trans "املأ التفاصيل بدقة حتى نتمكن من تذكيرك في الوقت المناسب." %}</div>
+            </div>
+        </div>
+
+        {% if form.non_field_errors %}
+            {% for error in form.non_field_errors %}
+            <div class="mb-alert mb-alert--danger mb-3"><i class="bi bi-exclamation-octagon-fill"></i> {{ error }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data" id="mbDocForm" novalidate>
+            {% csrf_token %}
+
+            <div class="mb-card mb-4">
+                <div class="mb-form-section-label"><i class="bi bi-info-circle"></i> {% trans "التفاصيل الأساسية" %}</div>
+                {% with cls=form.title|field_class:"form-control" %}
+                <div class="form-floating mb-3">
+                    {{ form.title|add_class:cls }}
+                    <label>{{ form.title.label }}</label>
+                    {% for error in form.title.errors %}<div class="invalid-feedback d-block"><i class="bi bi-exclamation-circle"></i> {{ error }}</div>{% endfor %}
+                </div>
+                {% endwith %}
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            {{ form.category|add_class:"form-select" }}
+                            <label>{{ form.category.label }}</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            {{ form.entity|add_class:"form-select" }}
+                            <label>{{ form.entity.label }}</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-card mb-4">
+                <div class="mb-form-section-label"><i class="bi bi-paperclip"></i> {% trans "الملف" %}</div>
+                <label for="{{ form.file.id_for_label }}" class="mb-file-drop {% if form.file.errors %}mb-file-drop--invalid{% endif %}" id="mbFileDrop">
+                    <i class="bi bi-cloud-arrow-up" id="mbFileDropIcon"></i>
+                    <div class="fw-semibold" id="mbFileDropText">{% trans "اضغط لاختيار ملف أو اسحبه هنا" %}</div>
+                    <div class="text-muted small" id="mbFileDropHint">PDF, JPG, PNG</div>
+                    {{ form.file|add_class:"mb-file-input-hidden" }}
+                </label>
+                {% for error in form.file.errors %}<div class="invalid-feedback d-block"><i class="bi bi-exclamation-circle"></i> {{ error }}</div>{% endfor %}
+                {% if document.file %}
+                <div class="text-muted small mt-2 mb-2">{% trans "الملف الحالي" %}</div>
+                <a href="{{ document.file.url }}" target="_blank" class="mb-current-file" title="{{ document.file_name }}">
+                    <span class="mb-current-file__icon"><i class="bi bi-file-earmark-check"></i></span>
+                    <span class="mb-current-file__name">{{ document.file_name }}</span>
+                    <span class="mb-current-file__open"><i class="bi bi-box-arrow-up-right"></i></span>
+                </a>
+                {% endif %}
+            </div>
+
+            <div class="mb-card mb-4">
+                <div class="mb-form-section-label"><i class="bi bi-calendar-range"></i> {% trans "الصلاحية" %}</div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            {{ form.issue_date|add_class:"form-control" }}
+                            <label>{{ form.issue_date.label }}</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        {% with cls=form.expiry_date|field_class:"form-control" %}
+                        <div class="form-floating">
+                            {{ form.expiry_date|add_class:cls }}
+                            <label>{{ form.expiry_date.label }}</label>
+                        </div>
+                        {% for error in form.expiry_date.errors %}<div class="invalid-feedback d-block"><i class="bi bi-exclamation-circle"></i> {{ error }}</div>{% endfor %}
+                        {% endwith %}
+                    </div>
+                </div>
+                <div class="form-text mt-2"><i class="bi bi-info-circle"></i> {% trans "سنذكّرك قبل الانتهاء بوقت كافٍ لرفع المستند الجديد." %}</div>
+            </div>
+
+            <div class="mb-card mb-4">
+                <div class="mb-form-section-label"><i class="bi bi-tags"></i> {% trans "التنظيم" %}</div>
+                <div class="mb-3">
+                    {{ form.tags|add_class:"form-control" }}
+                    <div class="form-text">{{ form.tags.help_text|default:"" }}</div>
+                </div>
+                <div class="form-floating">
+                    {{ form.notes|add_class:"form-control" }}
+                    <label>{{ form.notes.label }}</label>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {% trans "حفظ المستند" %}</button>
+                {% if document %}
+                <a href="{% url 'documents:detail' document.pk %}" class="btn btn-outline-secondary">{% trans "إلغاء" %}</a>
+                {% else %}
+                <a href="{% url 'documents:list' %}" class="btn btn-outline-secondary">{% trans "إلغاء" %}</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+    mbInitFileDrop('mbFileDrop');
+</script>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends 'accounts/base_auth.html' %}
+{% load i18n widget_tweaks %}
+{% block title %}{% trans "تسجيل الدخول" %} | MyBox{% endblock %}
+{% block auth_title %}{% trans "تسجيل الدخول" %}{% endblock %}
+{% block auth_subtitle %}<div class="text-muted small" id="mbGreeting">{% trans "مرحبًا بعودتك." %}</div>{% endblock %}
+{% block auth_body %}
+{% for error in form.non_field_errors %}
+<div class="mb-alert mb-alert--danger mb-3"><i class="bi bi-exclamation-octagon-fill"></i> {{ error }}</div>
+{% endfor %}
+<form method="post" novalidate>
+    {% csrf_token %}
+    <div class="form-floating mb-3">
+        {{ form.username|add_class:"form-control"|attr:"placeholder: " }}
+        <label>{{ form.username.label }}</label>
+    </div>
+    <div class="form-floating mb-3">
+        {{ form.password|add_class:"form-control"|attr:"placeholder: " }}
+        <label>{{ form.password.label }}</label>
+    </div>
+    <button type="submit" class="btn btn-primary w-100 mt-2"><i class="bi bi-box-arrow-in-left"></i> {% trans "دخول" %}</button>
+</form>
+<div class="text-center mt-3 small">
+    <a href="{% url 'accounts:password_reset' %}" class="text-muted">{% trans "نسيت كلمة المرور؟" %}</a>
+</div>
+<p class="text-center mt-2 mb-0 small">
+    {% trans "ليس لديك حساب؟" %} <a href="{% url 'accounts:register' %}" class="fw-semibold" style="color: var(--mb-primary);">{% trans "أنشئ حساب جديد" %}</a>
+</p>
+{% endblock %}

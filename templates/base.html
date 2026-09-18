@@ -1,0 +1,173 @@
+{% load i18n static cache_bust %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}" dir="{% if LANGUAGE_BIDI %}rtl{% else %}ltr{% endif %}" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="view-transition" content="same-origin">
+    <title>{% block title %}{% trans "MyBox" %}{% endblock %}</title>
+    <script>
+        (function () {
+            try {
+                if (localStorage.getItem('mbTheme') === 'light') {
+                    document.documentElement.setAttribute('data-bs-theme', 'light');
+                }
+            } catch (e) {}
+        })();
+    </script>
+
+    {% if LANGUAGE_BIDI %}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css">
+    {% else %}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    {% endif %}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static_v 'css/mybox.css' %}">
+    <link rel="icon" type="image/png" href="{% static 'img/logo.png' %}">
+
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <link rel="apple-touch-icon" href="{% static 'img/icon-192.png' %}">
+    <meta name="theme-color" content="#0a0a0a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MyBox">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark mb-navbar">
+        <div class="container">
+            <a class="navbar-brand mb-brand" href="{% url 'core:home' %}">
+                <span class="mb-brand__mark"><img src="{% static 'img/logo.png' %}" alt="MyBox"></span>
+                MyBox
+            </a>
+            <div class="d-flex align-items-center gap-2 mb-navbar__actions order-lg-3">
+                <button type="button" class="mb-icon-btn" id="mbThemeToggle" aria-label="{% trans 'تبديل المظهر' %}" title="{% trans 'تبديل المظهر' %}">
+                    <i class="bi bi-sun-fill" id="mbThemeIconLight"></i>
+                    <i class="bi bi-moon-stars-fill d-none" id="mbThemeIconDark"></i>
+                </button>
+                {% if user.is_authenticated %}
+                    <div class="dropdown mb-notif-menu" id="mbNotifMenu">
+                        <button type="button" class="mb-icon-btn position-relative" data-bs-toggle="dropdown" data-bs-display="static" id="mbNotifTrigger" aria-label="{% trans 'الإشعارات' %}">
+                            <i class="bi bi-bell-fill"></i>
+                            <span class="mb-notif-badge {% if unread_notifications_count %}mb-notif-badge--pulse{% else %}d-none{% endif %}" id="mbNotifBadge">{{ unread_notifications_count }}</span>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end mb-notif-dropdown mb-navbar-dropdown" id="mbNotifDropdown">
+                            <div class="text-center text-muted py-4 small">{% trans "جاري التحميل..." %}</div>
+                        </div>
+                    </div>
+                    <div class="dropdown">
+                        <button type="button" class="mb-icon-btn" data-bs-toggle="dropdown" data-bs-display="static" title="{{ user.username }}" aria-label="{% trans 'قائمة المستخدم' %}">
+                            <i class="bi bi-person-fill"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end mb-navbar-dropdown">
+                            <li class="dropdown-item-text text-muted small"><i class="bi bi-person-circle"></i> {{ user.username }}</li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'documents:archive_export' %}" data-no-spinner><i class="bi bi-download"></i> {% trans "تصدير أرشيف كامل" %}</a></li>
+                            <li>
+                                <button type="button" class="dropdown-item mb-logout-trigger" id="mbLogoutBtn"><i class="bi bi-box-arrow-right"></i> {% trans "تسجيل الخروج" %}</button>
+                            </li>
+                        </ul>
+                    </div>
+                    <form action="{% url 'accounts:logout' %}" method="post" id="mbLogoutForm" class="d-none">{% csrf_token %}</form>
+                {% else %}
+                    <a href="{% url 'accounts:login' %}" class="btn btn-outline-light btn-sm">{% trans "دخول" %}</a>
+                    <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-sm">{% trans "تسجيل" %}</a>
+                {% endif %}
+            </div>
+            {% if user.is_authenticated %}
+            <button class="navbar-toggler mb-navbar__toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-label="{% trans 'فتح القائمة' %}">
+                <i class="bi bi-list"></i>
+            </button>
+            <div class="collapse navbar-collapse order-lg-2" id="nav">
+                <ul class="navbar-nav me-lg-auto mb-navbar__links">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'documents:dashboard' %}"><i class="bi bi-speedometer2"></i> {% trans "الرئيسية" %}</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'list' %}active{% endif %}" href="{% url 'documents:list' %}"><i class="bi bi-folder2-open"></i> {% trans "مستنداتي" %}</a>
+                    </li>
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </nav>
+
+    <main class="container my-4 flex-grow-1">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="mb-footer mt-auto py-4">
+        <div class="container text-center small text-muted">
+            <div>&copy; {% now "Y" %} MyBox</div>
+            <a href="https://enjaztechnology.com" target="_blank" rel="noopener" class="mb-footer__credit mt-2">
+                <img src="{% static 'img/enjaz-logo.png' %}" alt="Enjaz">
+                <span>{% trans "تم التطوير بواسطة إنجاز" %}</span>
+            </a>
+        </div>
+    </footer>
+
+    <!-- Global page loader -->
+    <div id="mbPageLoader" aria-hidden="true" role="status">
+        <div class="mb-page-loader__ring">
+            <div class="mb-page-loader__inner">
+                <img src="{% static 'img/logo.png' %}" alt="" class="mb-page-loader__logo">
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast messages -->
+    <div class="mb-toast-stack" id="mbToastStack" aria-live="polite" aria-atomic="true">
+        {% for message in messages %}
+        <div class="mb-toast mb-toast--{{ message.tags }}" role="alert">
+            <i class="bi {% if message.tags == 'alert-success' %}bi-check-circle-fill{% elif message.tags == 'alert-danger' %}bi-x-circle-fill{% elif message.tags == 'alert-warning' %}bi-exclamation-triangle-fill{% else %}bi-info-circle-fill{% endif %}"></i>
+            <span>{{ message }}</span>
+            <button type="button" class="mb-toast__close" aria-label="{% trans 'إغلاق' %}">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Shared confirmation modal -->
+    <div class="modal fade" id="mbConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content mb-confirm-modal">
+                <div class="modal-body text-center p-4">
+                    <div class="mb-confirm-icon"><i class="bi bi-question-lg"></i></div>
+                    <h5 class="mb-confirm-title mb-2">{% trans "تأكيد العملية" %}</h5>
+                    <p class="mb-confirm-message text-muted mb-4">{% trans "هل أنت متأكد؟" %}</p>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{% trans "إلغاء" %}</button>
+                        <button type="button" class="btn btn-danger mb-confirm-btn">{% trans "تأكيد" %}</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static_v 'js/mybox.js' %}"></script>
+    <script>
+        var mbLogoutBtn = document.getElementById('mbLogoutBtn');
+        if (mbLogoutBtn) {
+            mbLogoutBtn.addEventListener('click', function () {
+                mbConfirm({
+                    title: '{% trans "تسجيل الخروج" %}',
+                    message: '{% trans "هل تريد تسجيل الخروج من حسابك؟" %}',
+                    confirmLabel: '{% trans "تسجيل الخروج" %}',
+                    onConfirm: function () { document.getElementById('mbLogoutForm').submit(); },
+                });
+            });
+        }
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () {
+                navigator.serviceWorker.register('/sw.js');
+            });
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

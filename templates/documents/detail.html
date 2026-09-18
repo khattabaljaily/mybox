@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{{ document.title }} | MyBox{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <div class="mb-card">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="mb-icon-badge" style="width:52px;height:52px;font-size:1.3rem;"><i class="bi {{ document.category.icon|default:'bi-file-earmark' }}"></i></span>
+                    <div>
+                        <h4 class="mb-0">{{ document.title }}</h4>
+                        <div class="text-muted small">{{ document.category|default:"—" }}{% if document.entity %} · {{ document.entity }}{% endif %}</div>
+                    </div>
+                </div>
+                {% if document.is_expired %}<span class="mb-pill mb-pill--danger">{% trans "منتهي" %}</span>{% endif %}
+            </div>
+
+            <dl class="mb-detail-list">
+                <div><dt>{% trans "تاريخ الإصدار" %}</dt><dd>{{ document.issue_date|default:"—" }}</dd></div>
+                <div><dt>{% trans "تاريخ الانتهاء" %}</dt><dd>{{ document.expiry_date|default:"—" }}</dd></div>
+                {% if document.tag_list %}
+                <div><dt>{% trans "الوسوم" %}</dt><dd>{% for tag in document.tag_list %}<span class="mb-pill mb-pill--muted">{{ tag }}</span> {% endfor %}</dd></div>
+                {% endif %}
+                {% if document.notes %}
+                <div><dt>{% trans "ملاحظات" %}</dt><dd>{{ document.notes }}</dd></div>
+                {% endif %}
+            </dl>
+
+            <div class="d-flex gap-2 mt-4">
+                <a href="{{ document.file.url }}" class="btn btn-primary flex-fill" target="_blank"><i class="bi bi-file-earmark-arrow-down"></i> {% trans "عرض الملف" %}</a>
+                {% if document.expiry_date %}
+                <a href="{% url 'documents:renew' document.pk %}" class="btn btn-outline-success flex-fill"><i class="bi bi-arrow-repeat"></i> {% trans "تجديد" %}</a>
+                {% endif %}
+            </div>
+            <div class="mb-doc-card__footer">
+                <span class="text-muted small">{{ document.created_at|date:"d M Y" }}</span>
+                <div class="mb-doc-card__actions">
+                    <a href="{% url 'documents:edit' document.pk %}" class="btn btn-outline-secondary btn-sm" title="{% trans 'تعديل' %}"><i class="bi bi-pencil"></i></a>
+                    <button type="button" class="btn btn-outline-danger btn-sm" id="mbDeleteBtn" title="{% trans 'حذف' %}"><i class="bi bi-trash"></i></button>
+                </div>
+                <form action="{% url 'documents:delete' document.pk %}" method="post" id="mbDeleteForm" class="d-none">{% csrf_token %}</form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+    document.getElementById('mbDeleteBtn').addEventListener('click', function () {
+        mbConfirm({
+            title: '{% trans "حذف المستند" %}',
+            message: '{% trans "هل أنت متأكد من حذف هذا المستند؟ لا يمكن التراجع عن هذا الإجراء." %}',
+            confirmLabel: '{% trans "حذف" %}',
+            onConfirm: function () { document.getElementById('mbDeleteForm').submit(); },
+        });
+    });
+</script>
+{% endblock %}
