@@ -349,6 +349,7 @@ a { text-decoration: none; }
 .mb-pill--warning { background: var(--mb-warning-light); color: var(--mb-warning); }
 .mb-pill--danger { background: var(--mb-danger-light); color: var(--mb-danger); }
 .mb-pill--muted { background: var(--mb-surface-soft); color: var(--mb-muted); }
+.mb-pill--success { background: var(--mb-success-light); color: var(--mb-success); }
 
 .mb-category-scroller {
     display: flex;
@@ -1352,3 +1353,31 @@ a.mb-pill:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0, 0,
     cursor: pointer;
 }
 
+
+
+/* ---------- Version history ---------- */
+.mb-version-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.mb-version { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .7rem 0; border-bottom: 1px solid var(--mb-border); }
+.mb-version:last-child { border-bottom: none; padding-bottom: 0; }
+.mb-version__main { min-width: 0; overflow-wrap: anywhere; }
+.mb-version__actions { display: flex; gap: .4rem; flex-shrink: 0; }
+
+/* ---------- Reminder day chips (checkbox styled as a pill) ---------- */
+.mb-chip-group { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mb-chip { position: relative; cursor: pointer; margin: 0; }
+.mb-chip input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+.mb-chip span {
+    display: inline-flex; align-items: center; padding: .4rem .9rem; border-radius: 999px;
+    background: var(--mb-surface-soft); color: var(--mb-muted); border: 1px solid var(--mb-border);
+    font-size: .82rem; font-weight: 700; transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+.mb-chip input:checked + span { background: var(--mb-primary-light); color: var(--mb-primary); border-color: var(--mb-primary); }
+.mb-chip input:focus-visible + span { box-shadow: 0 0 0 .2rem var(--mb-primary-light); }
+
+/* ---------- AI-assisted upload ---------- */
+.mb-ai-status { margin-top: .75rem; padding: .55rem .8rem; border-radius: var(--mb-radius-sm); font-size: .85rem; font-weight: 600; }
+.mb-ai-status[hidden] { display: none; }
+.mb-ai-status--busy { background: var(--mb-surface-soft); color: var(--mb-muted); }
+.mb-ai-status--ok { background: var(--mb-success-light); color: var(--mb-success); }
+.mb-ai-status--warn { background: var(--mb-warning-light); color: var(--mb-warning); }
+.mb-ai-filled { border-color: var(--mb-primary) !important; box-shadow: 0 0 0 .15rem var(--mb-primary-light); }

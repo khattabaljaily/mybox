@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "سلة المحذوفات" %} | MyBox{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+    <span class="mb-icon-badge" style="width:52px;height:52px;font-size:1.3rem;"><i class="bi bi-trash3"></i></span>
+    <div class="flex-grow-1">
+        <h4 class="mb-0">{% trans "سلة المحذوفات" %}</h4>
+        <div class="text-muted small">{% blocktrans %}تُحذف المستندات نهائيًا بعد {{ retention_days }} يومًا من نقلها إلى السلة.{% endblocktrans %}</div>
+    </div>
+    {% if documents %}
+    <button type="button" class="btn btn-outline-danger btn-sm" id="mbEmptyTrashBtn"><i class="bi bi-x-octagon"></i> {% trans "إفراغ السلة" %}</button>
+    {% endif %}
+    <a href="{% url 'documents:list' %}" class="btn btn-outline-secondary btn-sm">{% trans "مستنداتي" %}</a>
+</div>
+
+{% if documents %}
+<div class="row g-3">
+    {% for document in documents %}
+    <div class="col-md-6 col-lg-4">
+        <div class="mb-card mb-doc-card">
+            <div class="mb-doc-card__top">
+                <div>
+                    <div class="mb-doc-card__title">{{ document.title }}</div>
+                    <div class="text-muted small">{{ document.category|default:"—" }}{% if document.entity %} · {{ document.entity }}{% endif %}</div>
+                </div>
+                <span class="mb-icon-badge"><i class="bi {{ document.category.icon|default:'bi-file-earmark' }}"></i></span>
+            </div>
+            <div class="mb-doc-card__footer">
+                <span class="mb-pill {% if document.days_left < 4 %}mb-pill--danger{% else %}mb-pill--muted{% endif %}">
+                    <i class="bi bi-hourglass-split"></i> {% blocktrans with days=document.days_left %}يُحذف بعد {{ days }} يوم{% endblocktrans %}
+                </span>
+                <div class="mb-doc-card__actions">
+                    <form method="post" action="{% url 'documents:restore' document.pk %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-success btn-sm" title="{% trans 'استرجاع' %}"><i class="bi bi-arrow-counterclockwise"></i></button>
+                    </form>
+                    <button type="button" class="btn btn-outline-danger btn-sm mb-doc-purge" title="{% trans 'حذف نهائي' %}" data-title="{{ document.title }}" data-url="{% url 'documents:purge' document.pk %}"><i class="bi bi-x-lg"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="mb-card mb-empty">
+    <i class="bi bi-trash3"></i>
+    {% trans "سلة المحذوفات فارغة." %}
+</div>
+{% endif %}
+<form method="post" id="mbTrashForm" class="d-none">{% csrf_token %}</form>
+{% endblock %}
+{% block extra_js %}
+<script>
+    function mbTrashSubmit(url) {
+        var form = document.getElementById('mbTrashForm');
+        form.action = url;
+        form.submit();
+    }
+    document.querySelectorAll('.mb-doc-purge').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            mbConfirm({
+                title: '{% trans "حذف نهائي" %}',
+                message: '{% blocktrans %}سيُحذف المستند وملفاته نهائيًا ولا يمكن التراجع عن ذلك.{% endblocktrans %}',
+                confirmLabel: '{% trans "حذف" %}',
+                onConfirm: function () { mbTrashSubmit(btn.dataset.url); },
+            });
+        });
+    });
+    var mbEmptyBtn = document.getElementById('mbEmptyTrashBtn');
+    if (mbEmptyBtn) {
+        mbEmptyBtn.addEventListener('click', function () {
+            mbConfirm({
+                title: '{% trans "إفراغ السلة" %}',
+                message: '{% blocktrans %}ستُحذف كل المستندات في السلة نهائيًا ولا يمكن التراجع عن ذلك.{% endblocktrans %}',
+                confirmLabel: '{% trans "إفراغ" %}',
+                onConfirm: function () { mbTrashSubmit('{% url "documents:trash_empty" %}'); },
+            });
+        });
+    }
+</script>
+{% endblock %}

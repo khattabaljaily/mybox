@@ -1,4 +1,7 @@
 from django.contrib.auth import authenticate
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
+from django.utils.dateparse import parse_date
 from django.db.models import Q
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
@@ -11,15 +14,18 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.accounts.models import LoginOTP, User
 from apps.accounts.views import _send_login_otp
-from apps.documents import services
-from apps.documents.models import Category, Document, DocumentShare, Entity
+from apps.documents import extraction, services
+from apps.documents.models import Category, Document, DocumentShare, DocumentVersion, Entity
 from apps.notifications.models import Notification
 
 from .serializers import (
     CategorySerializer,
+    ChangePasswordSerializer,
     DocumentSerializer,
+    DocumentVersionSerializer,
     EntitySerializer,
     NotificationSerializer,
+    ProfileUpdateSerializer,
     RegisterSerializer,
     UserSerializer,
 )
@@ -104,10 +110,32 @@ def resend_otp(request):
     return Response({'detail': 'تم إرسال رمز جديد إلى بريدك.'})
 
 
-@api_view(['GET'])
+@api_view(['GET', 'PATCH'])
 @permission_classes([IsAuthenticated])
 def me(request):
+    if request.method == 'PATCH':
+        serializer = ProfileUpdateSerializer(request.user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
     return Response(UserSerializer(request.user).data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_password(request):
+    serializer = ChangePasswordSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    data = serializer.validated_data
+    if not request.user.check_password(data['old_password']):
+        return Response({'old_password': ['كلمة المرور الحالية غير صحيحة.']}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        validate_password(data['new_password'], request.user)
+    except DjangoValidationError as exc:
+        return Response({'new_password': list(exc.messages)}, status=status.HTTP_400_BAD_REQUEST)
+    request.user.set_password(data['new_password'])
+    request.user.save(update_fields=['password'])
+    # Note: this invalidates browser sessions, but JWTs already issued stay valid until they expire.
+    return Response({'detail': 'تم تغيير كلمة المرور.'})
 
 
 # ---------------- Dashboard ----------------
@@ -156,15 +184,17 @@ def document_detail(request, pk):
         return Response(DocumentSerializer(document, context={'request': request}).data)
 
     if request.method == 'DELETE':
-        document.delete()
+        services.trash_document(document)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    old_file_name, old_expiry = document.file.name, document.expiry_date
     serializer = DocumentSerializer(
         document, data=request.data, partial=(request.method == 'PATCH'),
         context={'request': request},
     )
     serializer.is_valid(raise_exception=True)
     serializer.save()
+    services.archive_replaced_file(document, old_file_name, old_expiry)
     return Response(serializer.data)
 
 
@@ -172,12 +202,81 @@ def document_detail(request, pk):
 @permission_classes([IsAuthenticated])
 def document_renew(request, pk):
     document = get_object_or_404(Document, pk=pk, owner=request.user)
-    new_expiry = request.data.get('expiry_date')
+    new_expiry = parse_date(str(request.data.get('expiry_date') or ''))
     new_file = request.FILES.get('file')
     if not new_expiry:
-        return Response({'detail': 'تاريخ الانتهاء مطلوب.'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'detail': 'تاريخ الانتهاء مطلوب بصيغة YYYY-MM-DD.'}, status=status.HTTP_400_BAD_REQUEST)
     services.renew_document(document, new_expiry, new_file)
     return Response(DocumentSerializer(document, context={'request': request}).data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def document_snooze(request, pk):
+    document = get_object_or_404(Document, pk=pk, owner=request.user)
+    try:
+        days = int(request.data.get('days'))
+    except (TypeError, ValueError):
+        days = 0
+    if days not in services.SNOOZE_DAY_CHOICES:
+        return Response(
+            {'detail': 'مدة التأجيل غير صالحة.', 'allowed_days': list(services.SNOOZE_DAY_CHOICES)},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    services.snooze_document(document, days)
+    return Response(DocumentSerializer(document, context={'request': request}).data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def document_versions(request, pk):
+    document = get_object_or_404(Document, pk=pk, owner=request.user)
+    return Response(DocumentVersionSerializer(document.versions.all(), many=True, context={'request': request}).data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def document_version_restore(request, pk, version_pk):
+    document = get_object_or_404(Document, pk=pk, owner=request.user)
+    version = get_object_or_404(DocumentVersion, pk=version_pk, document=document)
+    if not version.file:
+        return Response({'detail': 'هذه النسخة لا تحتوي على ملف.'}, status=status.HTTP_400_BAD_REQUEST)
+    services.restore_version(document, version)
+    return Response(DocumentSerializer(document, context={'request': request}).data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def trash_list(request):
+    documents = Document.all_objects.filter(
+        owner=request.user, deleted_at__isnull=False,
+    ).select_related('category', 'entity').order_by('-deleted_at')
+    return Response(DocumentSerializer(documents, many=True, context={'request': request}).data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def document_restore(request, pk):
+    document = get_object_or_404(Document.all_objects, pk=pk, owner=request.user, deleted_at__isnull=False)
+    services.restore_document(document)
+    return Response(DocumentSerializer(document, context={'request': request}).data)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def document_purge(request, pk):
+    """Permanently delete a document that is already in the trash."""
+    document = get_object_or_404(Document.all_objects, pk=pk, owner=request.user, deleted_at__isnull=False)
+    services.purge_document(document)
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def document_extract(request):
+    """Read an uploaded file with Claude and suggest title/category/dates (see documents/extraction.py)."""
+    payload, http_status = extraction.extract_for_user(request.user, request.FILES.get('file'))
+    return Response(payload, status=http_status)
 
 
 @api_view(['GET'])

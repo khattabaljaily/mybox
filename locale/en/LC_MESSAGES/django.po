@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MyBox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-19 02:31+0300\n"
+"POT-Creation-Date: 2026-09-21 23:52+0300\n"
 "PO-Revision-Date: 2026-09-19 02:25+0300\n"
 "Last-Translator: MyBox\n"
 "Language-Team: English\n"
@@ -33,6 +33,12 @@ msgstr "Verification code"
 
 msgid "الرمز يجب أن يتكون من أرقام فقط."
 msgstr "The code must contain digits only."
+
+msgid "الاسم الأول"
+msgstr "First name"
+
+msgid "اسم العائلة"
+msgstr "Last name"
 
 msgid "مستخدم"
 msgstr "User"
@@ -67,15 +73,30 @@ msgstr "You've exceeded the allowed number of attempts. Please log in again."
 msgid "الرمز غير صحيح أو منتهي الصلاحية."
 msgstr "The code is incorrect or has expired."
 
-msgid ""
-"تم إنشاء حسابك بنجاح. أدخل رمز التحقق المرسل إلى بريدك الإلكتروني لإكمال "
-"الدخول."
-msgstr ""
-"Your account has been created successfully. Enter the verification code sent "
-"to your email to complete sign-in."
+msgid "تم إنشاء حسابك بنجاح. أدخل رمز التحقق المرسل إلى بريدك الإلكتروني لإكمال الدخول."
+msgstr "Your account has been created successfully. Enter the verification code sent to your email to complete sign-in."
+
+msgid "تم حفظ بياناتك."
+msgstr "Your details have been saved."
+
+msgid "تم تسجيل الخروج من الأجهزة الأخرى."
+msgstr "Signed out of your other devices."
+
+msgid "لا توجد أجهزة أخرى مسجَّل دخولها."
+msgstr "There are no other signed-in devices."
+
+msgid "تم تغيير كلمة المرور. سُجّل خروجك من الأجهزة الأخرى."
+msgstr "Your password has been changed. Your other web sessions were signed out."
+
+msgid "التنبيهات"
+msgstr "Reminders"
 
 msgid "افصل بين الوسوم بفاصلة"
 msgstr "Separate tags with a comma"
+
+#, python-format
+msgid "%(days)s يوم"
+msgstr "%(days)s days"
 
 msgid "الاسم بالعربية"
 msgstr "Arabic name"
@@ -131,14 +152,38 @@ msgstr "Issue date"
 msgid "تاريخ الانتهاء"
 msgstr "Expiry date"
 
+msgid "أيام التنبيه"
+msgstr "Reminder days"
+
+msgid "أيام قبل الانتهاء مفصولة بفواصل. الحقل الفارغ يعني استخدام الإعداد الافتراضي."
+msgstr "Days before expiry, separated by commas. Leave empty to use the default schedule."
+
 msgid "مستند"
 msgstr "Document"
 
 msgid "المستندات"
 msgstr "Documents"
 
+msgid "تجديد"
+msgstr "Renew"
+
+msgid "استبدال الملف"
+msgstr "File replaced"
+
+msgid "استرجاع نسخة قديمة"
+msgstr "Old version restored"
+
 msgid "المستند"
 msgstr "Document"
+
+msgid "السبب"
+msgstr "Reason"
+
+msgid "نسخة سابقة"
+msgstr "previous version"
+
+msgid "النسخ السابقة"
+msgstr "previous versions"
 
 msgid "رابط مشاركة"
 msgstr "Share link"
@@ -152,11 +197,36 @@ msgstr "The document was saved successfully."
 msgid "تم تحديث المستند."
 msgstr "The document has been updated."
 
-msgid "تم حذف المستند."
-msgstr "The document has been deleted."
+msgid "تم نقل المستند إلى سلة المحذوفات."
+msgstr "The document was moved to the trash."
 
 msgid "تم تجديد المستند."
 msgstr "The document has been renewed."
+
+msgid "أدخل تاريخ انتهاء صحيحًا."
+msgstr "Enter a valid expiry date."
+
+msgid "مدة التأجيل غير صالحة."
+msgstr "Invalid snooze duration."
+
+#, python-format
+msgid "سنذكّرك مرة أخرى بتاريخ %(date)s."
+msgstr "We'll remind you again on %(date)s."
+
+msgid "هذه النسخة لا تحتوي على ملف لاسترجاعه."
+msgstr "This version has no file to restore."
+
+msgid "تم استرجاع الملف. راجع تاريخ الانتهاء إن لزم."
+msgstr "The file was restored. Check the expiry date if needed."
+
+msgid "تم استرجاع المستند."
+msgstr "The document was restored."
+
+msgid "تم حذف المستند نهائيًا."
+msgstr "The document was permanently deleted."
+
+msgid "تم إفراغ سلة المحذوفات."
+msgstr "The trash was emptied."
 
 msgid "تم إنشاء رابط المشاركة."
 msgstr "The share link has been created."
@@ -165,10 +235,16 @@ msgid "تم إلغاء رابط المشاركة."
 msgstr "The share link has been revoked."
 
 #, python-format
+msgid "مستند \"%(title)s\" يحتاج إلى مراجعة. اضغط لرفع المستند الجديد."
+msgstr "Document \"%(title)s\" needs your attention. Tap to upload the new document."
+
+#, python-format
+msgid "مستند \"%(title)s\" انتهت صلاحيته. اضغط لرفع المستند الجديد."
+msgstr "Document \"%(title)s\" has expired. Tap to upload the new document."
+
+#, python-format
 msgid "مستند \"%(title)s\" ينتهي خلال %(days)s يوم. اضغط لرفع المستند الجديد."
-msgstr ""
-"The document \"%(title)s\" expires in %(days)s days. Tap to upload the new "
-"document."
+msgstr "The document \"%(title)s\" expires in %(days)s days. Tap to upload the new document."
 
 msgid "اقتراب انتهاء مستند — يلزم التجديد"
 msgstr "A document is about to expire — renewal needed"
@@ -176,6 +252,10 @@ msgstr "A document is about to expire — renewal needed"
 #, python-format
 msgid "تنبيه: %(title)s ينتهي قريبًا"
 msgstr "Reminder: %(title)s expires soon"
+
+#, python-format
+msgid "تنبيه: مستند %(title)s يحتاج إلى تجديد"
+msgstr "Reminder: %(title)s needs renewing"
 
 msgid "الرسالة"
 msgstr "Message"
@@ -205,9 +285,7 @@ msgid "خزنتك الرقمية الآمنة"
 msgstr "Your secure digital vault"
 
 msgid "احفظ مستنداتك في مكان واحد آمن، وتابع تواريخ انتهاء صلاحيتها أولًا بأول."
-msgstr ""
-"Keep your documents in one secure place, and stay on top of their expiry "
-"dates as they come up."
+msgstr "Keep your documents in one secure place, and stay on top of their expiry dates as they come up."
 
 msgid "تنبيهات تلقائية قبل انتهاء الصلاحية"
 msgstr "Automatic alerts before expiry"
@@ -259,15 +337,23 @@ msgid "رمز الدخول إلى حسابك في MyBox هو:"
 msgstr "Your MyBox login code is:"
 
 #, python-format
-msgid ""
-"هذا الرمز صالح لمدة %(validity_minutes)s دقائق. إذا لم تحاول تسجيل الدخول، "
-"تجاهل هذه الرسالة."
-msgstr ""
-"This code is valid for %(validity_minutes)s minutes. If you didn't try to "
-"log in, ignore this message."
+msgid "هذا الرمز صالح لمدة %(validity_minutes)s دقائق. إذا لم تحاول تسجيل الدخول، تجاهل هذه الرسالة."
+msgstr "This code is valid for %(validity_minutes)s minutes. If you didn't try to log in, ignore this message."
 
 msgid "رمز الدخول - MyBox"
 msgstr "Login code - MyBox"
+
+msgid "تغيير كلمة المرور"
+msgstr "Change password"
+
+msgid "أدخل كلمة مرورك الحالية ثم اختر كلمة جديدة قوية."
+msgstr "Enter your current password, then choose a strong new one."
+
+msgid "حفظ كلمة المرور"
+msgstr "Save password"
+
+msgid "العودة إلى حسابي"
+msgstr "Back to my account"
 
 msgid "استعادة كلمة المرور"
 msgstr "Reset password"
@@ -299,9 +385,6 @@ msgstr "New password"
 msgid "اختر كلمة مرور قوية لحسابك."
 msgstr "Choose a strong password for your account."
 
-msgid "حفظ كلمة المرور"
-msgstr "Save password"
-
 msgid "رابط إعادة التعيين غير صالح أو منتهي الصلاحية."
 msgstr "The reset link is invalid or has expired."
 
@@ -311,27 +394,53 @@ msgstr "Request a new link"
 msgid "تحقق من بريدك"
 msgstr "Check your email"
 
-msgid ""
-"إذا كان البريد الإلكتروني الذي أدخلته مسجّلاً لدينا، فستصلك رسالة تحتوي على "
-"رابط إعادة التعيين."
-msgstr ""
-"If the email you entered is registered with us, you'll receive a message "
-"with a reset link."
+msgid "إذا كان البريد الإلكتروني الذي أدخلته مسجّلاً لدينا، فستصلك رسالة تحتوي على رابط إعادة التعيين."
+msgstr "If the email you entered is registered with us, you'll receive a message with a reset link."
 
-msgid ""
-"وصلنا طلب لإعادة تعيين كلمة المرور لحسابك في MyBox. اضغط على الرابط التالي "
-"لاختيار كلمة مرور جديدة:"
-msgstr ""
-"We received a request to reset the password for your MyBox account. Click "
-"the link below to choose a new password:"
+msgid "وصلنا طلب لإعادة تعيين كلمة المرور لحسابك في MyBox. اضغط على الرابط التالي لاختيار كلمة مرور جديدة:"
+msgstr "We received a request to reset the password for your MyBox account. Click the link below to choose a new password:"
 
 msgid "إذا لم تطلب ذلك، تجاهل هذه الرسالة وستبقى كلمة مرورك كما هي."
-msgstr ""
-"If you didn't request this, ignore this message and your password will "
-"remain unchanged."
+msgstr "If you didn't request this, ignore this message and your password will remain unchanged."
 
 msgid "إعادة تعيين كلمة المرور - MyBox"
 msgstr "Password reset - MyBox"
+
+msgid "حسابي"
+msgstr "My account"
+
+msgid "البيانات الشخصية"
+msgstr "Personal details"
+
+msgid "البريد الإلكتروني هو وسيلة التحقق بخطوتين، لذلك لا يمكن تغييره من هنا."
+msgstr "Your email is used for two-step verification, so it can't be changed here."
+
+msgid "حفظ"
+msgstr "Save"
+
+msgid "الأمان"
+msgstr "Security"
+
+msgid "التحقق بخطوتين"
+msgstr "Two-step verification"
+
+msgid "مُفعَّل عبر البريد الإلكتروني"
+msgstr "Enabled via email"
+
+msgid "غير مُفعَّل — لا يوجد بريد إلكتروني في حسابك"
+msgstr "Not enabled — your account has no email address"
+
+msgid "الجلسات النشطة"
+msgstr "Active sessions"
+
+#, python-format
+msgid "جلسة واحدة نشطة"
+msgid_plural "%(total)s جلسات نشطة"
+msgstr[0] "1 active session"
+msgstr[1] "%(total)s active sessions"
+
+msgid "تسجيل الخروج من الأجهزة الأخرى"
+msgstr "Sign out of other devices"
 
 msgid "حساب جديد"
 msgstr "New account"
@@ -362,6 +471,9 @@ msgstr "Loading..."
 
 msgid "قائمة المستخدم"
 msgstr "User menu"
+
+msgid "سلة المحذوفات"
+msgstr "Trash"
 
 msgid "تصدير أرشيف كامل"
 msgstr "Export full archive"
@@ -399,13 +511,8 @@ msgstr "Cancel"
 msgid "هل تريد تسجيل الخروج من حسابك؟"
 msgstr "Do you want to log out of your account?"
 
-msgid ""
-"خزنتك الرقمية لكل مستنداتك المهمة — هوية، عقود، تأمين وشهادات، منظمة في مكان "
-"واحد ومحمية من فوات مواعيد الصلاحية."
-msgstr ""
-"Your digital vault for all your important documents — ID, contracts, "
-"insurance and certificates, organized in one place and protected from missed "
-"expiry dates."
+msgid "خزنتك الرقمية لكل مستنداتك المهمة — هوية، عقود، تأمين وشهادات، منظمة في مكان واحد ومحمية من فوات مواعيد الصلاحية."
+msgstr "Your digital vault for all your important documents — ID, contracts, insurance and certificates, organized in one place and protected from missed expiry dates."
 
 msgid "ابدأ مجانًا"
 msgstr "Get started for free"
@@ -420,8 +527,7 @@ msgid "تنبيهات ذكية"
 msgstr "Smart reminders"
 
 msgid "نذكّرك قبل انتهاء أي مستند بوقت كافٍ للتجديد."
-msgstr ""
-"We remind you before any document expires, with enough time to renew it."
+msgstr "We remind you before any document expires, with enough time to renew it."
 
 msgid "أرشيف قابل للتصدير"
 msgstr "Exportable archive"
@@ -452,9 +558,7 @@ msgid "الخزنة فارغة حتى الآن"
 msgstr "Your vault is empty so far"
 
 msgid "ابدأ بإضافة مستندك الأول، وسنتابع تاريخ انتهاء صلاحيته تلقائيًا."
-msgstr ""
-"Start by adding your first document, and we'll track its expiry date "
-"automatically."
+msgstr "Start by adding your first document, and we'll track its expiry date automatically."
 
 msgid "أضف مستندك الأول"
 msgstr "Add your first document"
@@ -470,9 +574,6 @@ msgid "يوم واحد متبقي"
 msgid_plural "%(days)s يوم متبقي"
 msgstr[0] "1 day left"
 msgstr[1] "%(days)s days left"
-
-msgid "تجديد"
-msgstr "Renew"
 
 msgid "تعديل"
 msgstr "Edit"
@@ -492,17 +593,48 @@ msgstr "Do you want to delete"
 msgid "منتهي"
 msgstr "Expired"
 
+#, python-format
+msgid "قبل %(days)s يوم"
+msgstr "%(days)s days before"
+
+msgid "(افتراضي)"
+msgstr "(default)"
+
+#, python-format
+msgid "مؤجَّل حتى %(date)s"
+msgstr "Snoozed until %(date)s"
+
 msgid "تحميل الملف"
 msgstr "Download file"
 
 msgid "عرض الملف"
 msgstr "View file"
 
+msgid "تأجيل التنبيه"
+msgstr "Snooze reminder"
+
+#, python-format
+msgid "ذكّرني بعد %(days)s يوم"
+msgstr "Remind me in %(days)s days"
+
 msgid "مشاركة"
 msgstr "Share"
 
+msgid "السجل والنسخ السابقة"
+msgstr "History and previous versions"
+
+#, python-format
+msgid "كان ينتهي في %(date)s"
+msgstr "Was due to expire on %(date)s"
+
+msgid "بدون تاريخ انتهاء"
+msgstr "No expiry date"
+
 msgid "تحميل"
 msgstr "Download"
+
+msgid "استرجاع هذا الملف"
+msgstr "Restore this file"
 
 msgid "مشاركة المستند"
 msgstr "Share document"
@@ -538,9 +670,9 @@ msgstr "Create share link"
 msgid "أي شخص يملك هذا الرابط يقدر يشوف الملف وينزّله حتى تاريخ انتهائه."
 msgstr "Anyone with this link can view and download the file until it expires."
 
-msgid "هل أنت متأكد من حذف هذا المستند؟ لا يمكن التراجع عن هذا الإجراء."
-msgstr ""
-"Are you sure you want to delete this document? This action cannot be undone."
+#, python-format
+msgid "سيُنقل المستند إلى سلة المحذوفات ويمكنك استرجاعه خلال %(retention_days)s يومًا."
+msgstr "The document will move to the trash, and you can restore it within %(retention_days)s days."
 
 msgid "تعديل مستند"
 msgstr "Edit document"
@@ -560,6 +692,9 @@ msgstr "Basic details"
 msgid "اضغط لاختيار ملف أو اسحبه هنا"
 msgstr "Click to choose a file or drag it here"
 
+msgid "عند اختيار ملف سيقرأه Claude (Anthropic) ليقترح العنوان والتصنيف والتواريخ. يُرسل الملف إلى خدمة Claude لهذا الغرض فقط."
+msgstr "When you choose a file, Claude (Anthropic) reads it to suggest the title, category and dates. The file is sent to the Claude service for that purpose only."
+
 msgid "الملف الحالي"
 msgstr "Current file"
 
@@ -567,9 +702,13 @@ msgid "الصلاحية"
 msgstr "Validity"
 
 msgid "سنذكّرك قبل الانتهاء بوقت كافٍ لرفع المستند الجديد."
-msgstr ""
-"We'll remind you before it expires, with enough time to upload the new "
-"document."
+msgstr "We'll remind you before it expires, with enough time to upload the new document."
+
+msgid "متى تريد التذكير؟"
+msgstr "When should we remind you?"
+
+msgid "اتركها فارغة لاستخدام الإعداد الافتراضي (30 و15 و7 و1 يوم قبل الانتهاء)."
+msgstr "Leave empty to use the default (30, 15, 7 and 1 days before expiry)."
 
 msgid "التنظيم"
 msgstr "Organization"
@@ -607,6 +746,13 @@ msgstr "New expiry date"
 msgid "ملف جديد (اختياري)"
 msgstr "New file (optional)"
 
+msgid "لست جاهزًا بعد؟ أجّل التنبيه وسنذكّرك لاحقًا."
+msgstr "Not ready yet? Snooze the reminder and we'll remind you later."
+
+#, python-format
+msgid "بعد %(days)s يوم"
+msgstr "In %(days)s days"
+
 msgid "مستند تمت مشاركته معك عبر MyBox"
 msgstr "A document shared with you via MyBox"
 
@@ -619,6 +765,35 @@ msgstr "This link has expired or is invalid"
 msgid "اطلب من صاحب المستند رابط مشاركة جديد."
 msgstr "Ask the document owner for a new share link."
 
+#, python-format
+msgid "تُحذف المستندات نهائيًا بعد %(retention_days)s يومًا من نقلها إلى السلة."
+msgstr "Documents are permanently deleted %(retention_days)s days after they are moved to the trash."
+
+msgid "إفراغ السلة"
+msgstr "Empty trash"
+
+#, python-format
+msgid "يُحذف بعد %(days)s يوم"
+msgstr "Deleted in %(days)s days"
+
+msgid "استرجاع"
+msgstr "Restore"
+
+msgid "حذف نهائي"
+msgstr "Delete permanently"
+
+msgid "سلة المحذوفات فارغة."
+msgstr "The trash is empty."
+
+msgid "سيُحذف المستند وملفاته نهائيًا ولا يمكن التراجع عن ذلك."
+msgstr "The document and its files will be permanently deleted. This cannot be undone."
+
+msgid "ستُحذف كل المستندات في السلة نهائيًا ولا يمكن التراجع عن ذلك."
+msgstr "Every document in the trash will be permanently deleted. This cannot be undone."
+
+msgid "إفراغ"
+msgstr "Empty"
+
 msgid "عرض كل الإشعارات"
 msgstr "View all notifications"
 
@@ -626,12 +801,16 @@ msgid "لا توجد إشعارات"
 msgstr "No notifications"
 
 #, python-format
-msgid ""
-"مستند \"%(title)s\" في MyBox سينتهي خلال %(days_before)s يوم (بتاريخ "
-"%(expiry)s). يُرجى رفع المستند الجديد في أقرب وقت."
-msgstr ""
-"Your document \"%(title)s\" on MyBox will expire in %(days_before)s days (on "
-"%(expiry)s). Please upload the new document as soon as possible."
+msgid "مستند \"%(title)s\" في MyBox يحتاج إلى مراجعة. يُرجى رفع المستند الجديد في أقرب وقت."
+msgstr "Your document \"%(title)s\" in MyBox needs your attention. Please upload the new document as soon as possible."
+
+#, python-format
+msgid "مستند \"%(title)s\" في MyBox انتهت صلاحيته بتاريخ %(expiry)s. يُرجى رفع المستند الجديد في أقرب وقت."
+msgstr "Your document \"%(title)s\" in MyBox expired on %(expiry)s. Please upload the new document as soon as possible."
+
+#, python-format
+msgid "مستند \"%(title)s\" في MyBox سينتهي خلال %(days_before)s يوم (بتاريخ %(expiry)s). يُرجى رفع المستند الجديد في أقرب وقت."
+msgstr "Your document \"%(title)s\" on MyBox will expire in %(days_before)s days (on %(expiry)s). Please upload the new document as soon as possible."
 
 msgid "لا توجد إشعارات."
 msgstr "No notifications."

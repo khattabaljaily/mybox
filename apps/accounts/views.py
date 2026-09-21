@@ -1,6 +1,9 @@
 from django.conf import settings
 from django.contrib.auth import login
-from django.contrib.auth.views import LoginView, LogoutView
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import LoginView, LogoutView, PasswordChangeView
+from django.contrib.messages.views import SuccessMessageMixin
+from django.contrib.sessions.models import Session
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
@@ -8,8 +11,9 @@ from django.urls import reverse_lazy
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.contrib import messages
+from django.views.decorators.http import require_POST
 
-from .forms import LoginForm, OTPForm, RegisterForm
+from .forms import LoginForm, OTPForm, ProfileForm, RegisterForm
 from .models import LoginOTP, User
 
 OTP_MAX_ATTEMPTS = 5
@@ -119,3 +123,49 @@ def register(request):
         form = RegisterForm()
 
     return render(request, 'accounts/register.html', {'form': form})
+
+
+def _user_sessions(user):
+    """Active (unexpired) sessions belonging to `user`. Django's session table
+    doesn't index by user, so decode each session — fine at this app's scale."""
+    matches = []
+    for session in Session.objects.filter(expire_date__gt=timezone.now()):
+        if session.get_decoded().get('_auth_user_id') == str(user.pk):
+            matches.append(session)
+    return matches
+
+
+@login_required
+def profile(request):
+    if request.method == 'POST':
+        form = ProfileForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _('تم حفظ بياناتك.'))
+            return redirect('accounts:profile')
+    else:
+        form = ProfileForm(instance=request.user)
+    return render(request, 'accounts/profile.html', {
+        'form': form,
+        'two_factor_enabled': bool(request.user.email),
+        'session_count': len(_user_sessions(request.user)),
+    })
+
+
+@login_required
+@require_POST
+def sign_out_other_devices(request):
+    current_key = request.session.session_key
+    signed_out = 0
+    for session in _user_sessions(request.user):
+        if session.session_key != current_key:
+            session.delete()
+            signed_out += 1
+    messages.success(request, _('تم تسجيل الخروج من الأجهزة الأخرى.') if signed_out else _('لا توجد أجهزة أخرى مسجَّل دخولها.'))
+    return redirect('accounts:profile')
+
+
+class MyBoxPasswordChangeView(SuccessMessageMixin, PasswordChangeView):
+    template_name = 'accounts/password_change.html'
+    success_url = reverse_lazy('accounts:profile')
+    success_message = _('تم تغيير كلمة المرور. سُجّل خروجك من الأجهزة الأخرى.')

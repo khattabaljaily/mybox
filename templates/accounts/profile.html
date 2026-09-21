@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% load i18n widget_tweaks form_extras %}
+{% block title %}{% trans "حسابي" %} | MyBox{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="d-flex align-items-center gap-3 mb-4">
+            <span class="mb-icon-badge" style="width:52px;height:52px;font-size:1.3rem;"><i class="bi bi-person-fill"></i></span>
+            <div>
+                <h4 class="mb-0">{% trans "حسابي" %}</h4>
+                <div class="text-muted small">{{ user.username }}</div>
+            </div>
+        </div>
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+            <div class="mb-card mb-4">
+                <div class="mb-form-section-label"><i class="bi bi-person-lines-fill"></i> {% trans "البيانات الشخصية" %}</div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            {{ form.first_name|add_class:"form-control"|attr:"placeholder: " }}
+                            <label>{{ form.first_name.label }}</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            {{ form.last_name|add_class:"form-control"|attr:"placeholder: " }}
+                            <label>{{ form.last_name.label }}</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-floating mb-3">
+                    {{ form.phone|add_class:"form-control"|attr:"placeholder: " }}
+                    <label>{{ form.phone.label }}</label>
+                    {% for error in form.phone.errors %}<div class="invalid-feedback d-block"><i class="bi bi-exclamation-circle"></i> {{ error }}</div>{% endfor %}
+                </div>
+                <div class="form-floating mb-3">
+                    <input type="email" class="form-control" value="{{ user.email }}" placeholder=" " disabled>
+                    <label>{% trans "البريد الإلكتروني" %}</label>
+                </div>
+                <div class="form-text mb-3"><i class="bi bi-info-circle"></i> {% trans "البريد الإلكتروني هو وسيلة التحقق بخطوتين، لذلك لا يمكن تغييره من هنا." %}</div>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {% trans "حفظ" %}</button>
+            </div>
+        </form>
+
+        <div class="mb-card mb-4">
+            <div class="mb-form-section-label"><i class="bi bi-shield-lock"></i> {% trans "الأمان" %}</div>
+            <dl class="mb-detail-list">
+                <div>
+                    <dt>{% trans "كلمة المرور" %}</dt>
+                    <dd><a href="{% url 'accounts:password_change' %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-key"></i> {% trans "تغيير كلمة المرور" %}</a></dd>
+                </div>
+                <div>
+                    <dt>{% trans "التحقق بخطوتين" %}</dt>
+                    <dd>
+                        {% if two_factor_enabled %}
+                        <span class="mb-pill mb-pill--success"><i class="bi bi-check-circle-fill"></i> {% trans "مُفعَّل عبر البريد الإلكتروني" %}</span>
+                        {% else %}
+                        <span class="mb-pill mb-pill--warning"><i class="bi bi-exclamation-triangle-fill"></i> {% trans "غير مُفعَّل — لا يوجد بريد إلكتروني في حسابك" %}</span>
+                        {% endif %}
+                    </dd>
+                </div>
+                <div>
+                    <dt>{% trans "الجلسات النشطة" %}</dt>
+                    <dd>
+                        <div class="mb-2">{% blocktrans count total=session_count %}جلسة واحدة نشطة{% plural %}{{ total }} جلسات نشطة{% endblocktrans %}</div>
+                        {% if session_count > 1 %}
+                        <form method="post" action="{% url 'accounts:sign_out_others' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-box-arrow-right"></i> {% trans "تسجيل الخروج من الأجهزة الأخرى" %}</button>
+                        </form>
+                        {% endif %}
+                    </dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+</div>
+{% endblock %}

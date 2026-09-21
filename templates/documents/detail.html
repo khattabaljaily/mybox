@@ -25,16 +25,35 @@
                 {% if document.notes %}
                 <div><dt>{% trans "ملاحظات" %}</dt><dd>{{ document.notes }}</dd></div>
                 {% endif %}
+                {% if document.expiry_date %}
+                <div>
+                    <dt>{% trans "التنبيهات" %}</dt>
+                    <dd>
+                        {% for days in document.reminder_thresholds %}<span class="mb-pill mb-pill--muted"><i class="bi bi-bell"></i> {% blocktrans %}قبل {{ days }} يوم{% endblocktrans %}</span> {% endfor %}
+                        {% if not document.reminder_days_list %}<span class="text-muted small">{% trans "(افتراضي)" %}</span>{% endif %}
+                        {% if document.snoozed_until %}<div class="mt-2"><span class="mb-pill mb-pill--warning"><i class="bi bi-alarm"></i> {% blocktrans with date=document.snoozed_until|date:"d M Y" %}مؤجَّل حتى {{ date }}{% endblocktrans %}</span></div>{% endif %}
+                    </dd>
+                </div>
+                {% endif %}
             </dl>
 
             <div class="d-flex gap-2 mt-4">
                 {% if document.file_kind == 'other' %}
-                <a href="{{ document.file.url }}" class="btn btn-primary flex-fill" download><i class="bi bi-download"></i> {% trans "تحميل الملف" %}</a>
+                <a href="{% url 'documents:file' document.pk %}?download=1" class="btn btn-primary flex-fill"><i class="bi bi-download"></i> {% trans "تحميل الملف" %}</a>
                 {% else %}
                 <button type="button" class="btn btn-primary flex-fill" data-bs-toggle="modal" data-bs-target="#mbFilePreviewModal"><i class="bi bi-eye"></i> {% trans "عرض الملف" %}</button>
                 {% endif %}
                 {% if document.expiry_date %}
                 <a href="{% url 'documents:renew' document.pk %}" class="btn btn-outline-success flex-fill"><i class="bi bi-arrow-repeat"></i> {% trans "تجديد" %}</a>
+                <div class="dropdown flex-fill">
+                    <button type="button" class="btn btn-outline-warning w-100" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-alarm"></i> {% trans "تأجيل التنبيه" %}</button>
+                    <form method="post" action="{% url 'documents:snooze' document.pk %}" class="dropdown-menu mb-navbar-dropdown p-1">
+                        {% csrf_token %}
+                        {% for days in snooze_days %}
+                        <button type="submit" name="days" value="{{ days }}" class="dropdown-item">{% blocktrans %}ذكّرني بعد {{ days }} يوم{% endblocktrans %}</button>
+                        {% endfor %}
+                    </form>
+                </div>
                 {% endif %}
             </div>
             <div class="mb-doc-card__footer">
@@ -47,6 +66,36 @@
                 <form action="{% url 'documents:delete' document.pk %}" method="post" id="mbDeleteForm" class="d-none">{% csrf_token %}</form>
             </div>
         </div>
+
+        {% if versions %}
+        <div class="mb-card mt-4">
+            <div class="mb-form-section-label"><i class="bi bi-clock-history"></i> {% trans "السجل والنسخ السابقة" %}</div>
+            <ul class="mb-version-list">
+                {% for version in versions %}
+                <li class="mb-version">
+                    <div class="mb-version__main">
+                        <div class="fw-semibold">{{ version.get_reason_display }}
+                            <span class="text-muted small fw-normal">· {{ version.created_at|date:"d M Y" }}</span>
+                        </div>
+                        <div class="text-muted small">
+                            {% if version.expiry_date %}{% blocktrans with date=version.expiry_date|date:"d M Y" %}كان ينتهي في {{ date }}{% endblocktrans %}{% else %}{% trans "بدون تاريخ انتهاء" %}{% endif %}
+                            {% if version.file %}· {{ version.file_name }}{% endif %}
+                        </div>
+                    </div>
+                    {% if version.file %}
+                    <div class="mb-version__actions">
+                        <a href="{% url 'documents:version_file' document.pk version.pk %}?download=1" class="btn btn-outline-secondary btn-sm" title="{% trans 'تحميل' %}"><i class="bi bi-download"></i></a>
+                        <form method="post" action="{% url 'documents:version_restore' document.pk version.pk %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-primary btn-sm" title="{% trans 'استرجاع هذا الملف' %}"><i class="bi bi-arrow-counterclockwise"></i></button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
     </div>
 </div>
 
@@ -61,13 +110,13 @@
             <div class="modal-body mb-preview-body">
                 <span class="mb-spinner-inline mb-preview-spinner" id="mbPreviewSpinner"></span>
                 {% if document.file_kind == 'image' %}
-                <img id="mbPreviewMedia" data-src="{{ document.file.url }}" alt="{{ document.title }}" class="mb-preview-img d-none">
+                <img id="mbPreviewMedia" data-src="{% url 'documents:file' document.pk %}" alt="{{ document.title }}" class="mb-preview-img d-none">
                 {% elif document.file_kind == 'pdf' %}
-                <iframe id="mbPreviewMedia" data-src="{{ document.file.url }}" class="mb-preview-frame d-none"></iframe>
+                <iframe id="mbPreviewMedia" data-src="{% url 'documents:file' document.pk %}" class="mb-preview-frame d-none"></iframe>
                 {% endif %}
             </div>
             <div class="modal-footer">
-                <a href="{{ document.file.url }}" class="btn btn-outline-secondary btn-sm" download><i class="bi bi-download"></i> {% trans "تحميل" %}</a>
+                <a href="{% url 'documents:file' document.pk %}?download=1" class="btn btn-outline-secondary btn-sm"><i class="bi bi-download"></i> {% trans "تحميل" %}</a>
             </div>
         </div>
     </div>
@@ -117,7 +166,7 @@
     document.getElementById('mbDeleteBtn').addEventListener('click', function () {
         mbConfirm({
             title: '{% trans "حذف المستند" %}',
-            message: '{% trans "هل أنت متأكد من حذف هذا المستند؟ لا يمكن التراجع عن هذا الإجراء." %}',
+            message: '{% blocktrans %}سيُنقل المستند إلى سلة المحذوفات ويمكنك استرجاعه خلال {{ retention_days }} يومًا.{% endblocktrans %}',
             confirmLabel: '{% trans "حذف" %}',
             onConfirm: function () { document.getElementById('mbDeleteForm').submit(); },
         });

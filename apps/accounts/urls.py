@@ -10,6 +10,9 @@ urlpatterns = [
     path('login/verify/', views.login_otp_verify, name='login_otp'),
     path('logout/', views.MyBoxLogoutView.as_view(), name='logout'),
     path('register/', views.register, name='register'),
+    path('profile/', views.profile, name='profile'),
+    path('profile/sign-out-others/', views.sign_out_other_devices, name='sign_out_others'),
+    path('password/change/', views.MyBoxPasswordChangeView.as_view(), name='password_change'),
 
     path(
         'password-reset/',

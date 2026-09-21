@@ -18,7 +18,7 @@
             {% endfor %}
         {% endif %}
 
-        <form method="post" enctype="multipart/form-data" id="mbDocForm" novalidate>
+        <form method="post" enctype="multipart/form-data" id="mbDocForm" novalidate{% if ai_enabled %} data-extract-url="{% url 'documents:extract' %}"{% endif %}>
             {% csrf_token %}
 
             <div class="mb-card mb-4">
@@ -55,9 +55,13 @@
                     {{ form.file|add_class:"mb-file-input-hidden" }}
                 </label>
                 {% for error in form.file.errors %}<div class="invalid-feedback d-block"><i class="bi bi-exclamation-circle"></i> {{ error }}</div>{% endfor %}
+                {% if ai_enabled %}
+                <div class="mb-ai-status" id="mbAiStatus" role="status" aria-live="polite" hidden></div>
+                <div class="form-text mt-2"><i class="bi bi-stars"></i> {% trans "عند اختيار ملف سيقرأه Claude (Anthropic) ليقترح العنوان والتصنيف والتواريخ. يُرسل الملف إلى خدمة Claude لهذا الغرض فقط." %}</div>
+                {% endif %}
                 {% if document.file %}
                 <div class="text-muted small mt-2 mb-2">{% trans "الملف الحالي" %}</div>
-                <a href="{{ document.file.url }}" target="_blank" class="mb-current-file" title="{{ document.file_name }}">
+                <a href="{% url 'documents:file' document.pk %}" target="_blank" class="mb-current-file" title="{{ document.file_name }}">
                     <span class="mb-current-file__icon"><i class="bi bi-file-earmark-check"></i></span>
                     <span class="mb-current-file__name">{{ document.file_name }}</span>
                     <span class="mb-current-file__open"><i class="bi bi-box-arrow-up-right"></i></span>
@@ -85,6 +89,18 @@
                     </div>
                 </div>
                 <div class="form-text mt-2"><i class="bi bi-info-circle"></i> {% trans "سنذكّرك قبل الانتهاء بوقت كافٍ لرفع المستند الجديد." %}</div>
+
+                <div class="mt-3">
+                    <div class="mb-field__label mb-2">{% trans "متى تريد التذكير؟" %}</div>
+                    <div class="mb-chip-group">
+                        {% for choice in form.custom_reminders %}
+                        <label class="mb-chip" for="{{ choice.id_for_label }}">
+                            {{ choice.tag }}<span>{{ choice.choice_label }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    <div class="form-text mt-2">{% trans "اتركها فارغة لاستخدام الإعداد الافتراضي (30 و15 و7 و1 يوم قبل الانتهاء)." %}</div>
+                </div>
             </div>
 
             <div class="mb-card mb-4">
@@ -114,5 +130,6 @@
 {% block extra_js %}
 <script>
     mbInitFileDrop('mbFileDrop');
+    mbInitAiExtract('mbDocForm');
 </script>
 {% endblock %}

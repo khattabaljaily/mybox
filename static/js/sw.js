@@ -1,5 +1,6 @@
 /* MyBox Service Worker — app-shell only, no document data caching. */
-const CACHE = 'mybox-shell-v1';
+// v2: also purges caches from v1, which could hold copies of private files.
+const CACHE = 'mybox-shell-v2';
 const SHELL = [
     '/static/img/icon-192.png',
     '/static/img/icon-512.png',
@@ -47,10 +48,16 @@ self.addEventListener('fetch', e => {
 
     // HTML pages — network first (documents change often), fall back to
     // cache so the app still opens (to whatever was last viewed) offline.
+    // Only HTML is kept: uploaded files (PDF/images, sent with Cache-Control:
+    // no-store) must never be copied into the browser's cache storage.
     e.respondWith(
         fetch(request)
             .then(res => {
-                caches.open(CACHE).then(cache => cache.put(request, res.clone()));
+                const type = res.headers.get('Content-Type') || '';
+                const noStore = (res.headers.get('Cache-Control') || '').includes('no-store');
+                if (res.ok && type.includes('text/html') && !noStore) {
+                    caches.open(CACHE).then(cache => cache.put(request, res.clone()));
+                }
                 return res;
             })
             .catch(() => caches.match(request))

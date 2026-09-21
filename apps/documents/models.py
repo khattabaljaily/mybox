@@ -10,6 +10,19 @@ from django.utils.translation import get_language, gettext_lazy as _
 IMAGE_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'}
 
 
+def _file_kind(file):
+    """'image', 'pdf', or 'other' — used to decide whether a file can be
+    previewed inline (in a modal) or should just be offered as a download."""
+    if not file:
+        return 'other'
+    ext = os.path.splitext(file.name)[1].lower()
+    if ext == '.pdf':
+        return 'pdf'
+    if ext in IMAGE_EXTENSIONS:
+        return 'image'
+    return 'other'
+
+
 class Category(models.Model):
     name_ar = models.CharField(max_length=100, verbose_name=_('الاسم بالعربية'))
     name_en = models.CharField(max_length=100, verbose_name=_('الاسم بالإنجليزية'))
@@ -63,6 +76,13 @@ class Entity(models.Model):
         return self.name
 
 
+class ActiveDocumentManager(models.Manager):
+    """Default manager: hides documents that are in the trash."""
+
+    def get_queryset(self):
+        return super().get_queryset().filter(deleted_at__isnull=True)
+
+
 class Document(models.Model):
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='documents',
@@ -84,8 +104,21 @@ class Document(models.Model):
     issue_date = models.DateField(null=True, blank=True, verbose_name=_('تاريخ الإصدار'))
     expiry_date = models.DateField(null=True, blank=True, verbose_name=_('تاريخ الانتهاء'))
 
+    reminder_days = models.CharField(
+        max_length=60, blank=True, verbose_name=_('أيام التنبيه'),
+        help_text=_('أيام قبل الانتهاء مفصولة بفواصل. الحقل الفارغ يعني استخدام الإعداد الافتراضي.'),
+    )
+    snoozed_until = models.DateField(null=True, blank=True, editable=False)
+
+    deleted_at = models.DateTimeField(null=True, blank=True, editable=False)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    # `objects` must stay first: it's the default manager, so every existing
+    # Document.objects / related-manager query skips trashed documents.
+    objects = ActiveDocumentManager()
+    all_objects = models.Manager()
 
     class Meta:
         ordering = ['-created_at']
@@ -122,16 +155,60 @@ class Document(models.Model):
 
     @property
     def file_kind(self):
-        """'image', 'pdf', or 'other' — used to decide whether the file can be
-        previewed inline (in a modal) or should just be offered as a download."""
-        if not self.file:
-            return 'other'
-        ext = os.path.splitext(self.file.name)[1].lower()
-        if ext == '.pdf':
-            return 'pdf'
-        if ext in IMAGE_EXTENSIONS:
-            return 'image'
-        return 'other'
+        return _file_kind(self.file)
+
+    @property
+    def reminder_days_list(self):
+        """The custom reminder days set on this document, largest first (empty = use defaults)."""
+        days = {int(d) for d in self.reminder_days.split(',') if d.strip().isdigit()}
+        return sorted(days, reverse=True)
+
+    @property
+    def reminder_thresholds(self):
+        return self.reminder_days_list or list(settings.EXPIRY_REMINDER_DAYS)
+
+    @property
+    def is_trashed(self):
+        return self.deleted_at is not None
+
+
+class DocumentVersion(models.Model):
+    """A snapshot of what a document looked like before it was renewed or had its
+    file replaced. The file moves here from the document (it isn't copied), and a
+    renewal without a new file records just the expiry date that was in effect."""
+
+    REASON_RENEWED = 'renewed'
+    REASON_REPLACED = 'replaced'
+    REASON_RESTORED = 'restored'
+    REASON_CHOICES = [
+        (REASON_RENEWED, _('تجديد')),
+        (REASON_REPLACED, _('استبدال الملف')),
+        (REASON_RESTORED, _('استرجاع نسخة قديمة')),
+    ]
+
+    document = models.ForeignKey(
+        Document, on_delete=models.CASCADE, related_name='versions', verbose_name=_('المستند'),
+    )
+    file = models.FileField(upload_to='documents/%Y/%m/', blank=True, verbose_name=_('الملف'))
+    expiry_date = models.DateField(null=True, blank=True, verbose_name=_('تاريخ الانتهاء'))
+    reason = models.CharField(max_length=10, choices=REASON_CHOICES, verbose_name=_('السبب'))
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at', '-id']
+        verbose_name = _('نسخة سابقة')
+        verbose_name_plural = _('النسخ السابقة')
+
+    def __str__(self):
+        return f'{self.document} ({self.get_reason_display()})'
+
+    @property
+    def file_name(self):
+        return self.file.name.rsplit('/', 1)[-1] if self.file else ''
+
+    @property
+    def file_kind(self):
+        return _file_kind(self.file)
 
 
 class DocumentShare(models.Model):

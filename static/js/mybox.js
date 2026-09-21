@@ -18,6 +18,13 @@ var MB_T = (function () {
             pwLevels: ['ضعيفة جدًا', 'ضعيفة', 'متوسطة', 'قوية'],
             pwMatch: 'كلمتا المرور متطابقتان',
             pwNoMatch: 'كلمتا المرور غير متطابقتين',
+            aiReading: 'Claude يقرأ المستند…',
+            aiFilled: 'تمت تعبئة {n} من الحقول تلقائيًا — راجعها قبل الحفظ.',
+            aiKept: 'قرأنا المستند، لكن الحقول التي اقترحناها مملوءة بالفعل فلم نغيّرها.',
+            aiNothing: 'لم نستطع قراءة بيانات واضحة من الملف. املأ الحقول يدويًا.',
+            aiUnsupported: 'هذا النوع أو الحجم من الملفات غير مدعوم للقراءة التلقائية.',
+            aiRateLimited: 'وصلت إلى حد القراءة التلقائية لهذه الساعة. املأ الحقول يدويًا.',
+            aiFailed: 'تعذّرت القراءة التلقائية الآن. املأ الحقول يدويًا.',
         },
         en: {
             installTitle: 'Install the app',
@@ -35,6 +42,13 @@ var MB_T = (function () {
             pwLevels: ['Very weak', 'Weak', 'Medium', 'Strong'],
             pwMatch: 'Passwords match',
             pwNoMatch: 'Passwords do not match',
+            aiReading: 'Claude is reading the document…',
+            aiFilled: '{n} field(s) filled automatically — please review before saving.',
+            aiKept: 'We read the document, but the fields we could suggest were already filled, so nothing was changed.',
+            aiNothing: 'We could not read clear details from the file. Please fill the fields in manually.',
+            aiUnsupported: 'This file type or size is not supported for automatic reading.',
+            aiRateLimited: 'You have reached the automatic-reading limit for this hour. Please fill the fields in manually.',
+            aiFailed: 'Automatic reading is unavailable right now. Please fill the fields in manually.',
         },
     };
     var lang = (document.documentElement.getAttribute('lang') || 'ar').slice(0, 2);
@@ -300,8 +314,78 @@ function mbInitFileDrop(dropId) {
         var files = e.dataTransfer && e.dataTransfer.files;
         if (files && files[0]) {
             input.files = files;
-            showFile(files[0].name);
+            // Fires the same 'change' listener as a normal pick (which calls showFile),
+            // and lets other features (e.g. mbInitAiExtract) react to dropped files too.
+            input.dispatchEvent(new Event('change', { bubbles: true }));
         }
+    });
+}
+
+// ---------- Upload form: pre-fill fields by having Claude read the chosen file ----------
+// The form opts in with data-extract-url (only rendered when the server has the
+// feature enabled). Only EMPTY fields are filled, and filled ones are highlighted
+// until the user edits them, so nothing is silently overwritten or silently trusted.
+function mbInitAiExtract(formId) {
+    var form = document.getElementById(formId);
+    if (!form || !form.dataset.extractUrl) return;
+    var input = form.querySelector('input[type="file"]');
+    var status = document.getElementById('mbAiStatus');
+    var tokenInput = form.querySelector('input[name="csrfmiddlewaretoken"]');
+    if (!input || !status || !tokenInput) return;
+
+    var fieldIds = { title: 'id_title', category_id: 'id_category', issue_date: 'id_issue_date', expiry_date: 'id_expiry_date' };
+    var latest = 0;
+
+    function setStatus(kind, text) {
+        var icons = { busy: 'bi-hourglass-split', ok: 'bi-stars', warn: 'bi-info-circle' };
+        status.hidden = false;
+        status.className = 'mb-ai-status mb-ai-status--' + kind;
+        status.innerHTML = '<i class="bi ' + icons[kind] + '"></i> ';
+        status.appendChild(document.createTextNode(text));
+    }
+
+    function fill(result) {
+        var filled = 0, suggested = 0;
+        Object.keys(fieldIds).forEach(function (key) {
+            var value = result[key];
+            var el = document.getElementById(fieldIds[key]);
+            if (value === null || value === undefined || !el) return;
+            suggested++;
+            if (el.value) return;
+            el.value = value;
+            el.classList.add('mb-ai-filled');
+            el.addEventListener('input', function () { el.classList.remove('mb-ai-filled'); }, { once: true });
+            el.addEventListener('change', function () { el.classList.remove('mb-ai-filled'); }, { once: true });
+            filled++;
+        });
+        return { filled: filled, suggested: suggested };
+    }
+
+    input.addEventListener('change', function () {
+        var file = input.files && input.files[0];
+        if (!file) return;
+        var mine = ++latest;
+        setStatus('busy', MB_T.aiReading);
+
+        var data = new FormData();
+        data.append('file', file);
+        fetch(form.dataset.extractUrl, {
+            method: 'POST', body: data, credentials: 'same-origin',
+            headers: { 'X-CSRFToken': tokenInput.value },
+        }).then(function (res) {
+            return res.json().catch(function () { return {}; }).then(function (body) { return { status: res.status, body: body }; });
+        }).then(function (res) {
+            if (mine !== latest) return; // a newer file was chosen meanwhile
+            if (res.status === 200) {
+                var out = fill(res.body);
+                if (out.filled) setStatus('ok', MB_T.aiFilled.replace('{n}', out.filled));
+                else setStatus('warn', out.suggested ? MB_T.aiKept : MB_T.aiNothing);
+            } else if (res.status === 422) setStatus('warn', MB_T.aiUnsupported);
+            else if (res.status === 429) setStatus('warn', MB_T.aiRateLimited);
+            else setStatus('warn', MB_T.aiFailed);
+        }).catch(function () {
+            if (mine === latest) setStatus('warn', MB_T.aiFailed);
+        });
     });
 }
 

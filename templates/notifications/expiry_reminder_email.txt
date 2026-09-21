@@ -1,5 +1,5 @@
 {% load i18n %}{% trans "مرحبًا،" %}
 
-{% blocktrans with title=document.title expiry=document.expiry_date %}مستند "{{ title }}" في MyBox سينتهي خلال {{ days_before }} يوم (بتاريخ {{ expiry }}). يُرجى رفع المستند الجديد في أقرب وقت.{% endblocktrans %}
+{% if days_before is None %}{% blocktrans with title=document.title %}مستند "{{ title }}" في MyBox يحتاج إلى مراجعة. يُرجى رفع المستند الجديد في أقرب وقت.{% endblocktrans %}{% elif days_before < 0 %}{% blocktrans with title=document.title expiry=document.expiry_date %}مستند "{{ title }}" في MyBox انتهت صلاحيته بتاريخ {{ expiry }}. يُرجى رفع المستند الجديد في أقرب وقت.{% endblocktrans %}{% else %}{% blocktrans with title=document.title expiry=document.expiry_date %}مستند "{{ title }}" في MyBox سينتهي خلال {{ days_before }} يوم (بتاريخ {{ expiry }}). يُرجى رفع المستند الجديد في أقرب وقت.{% endblocktrans %}{% endif %}
 
 {{ renew_url }}

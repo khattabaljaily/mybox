@@ -71,6 +71,8 @@
                         <ul class="dropdown-menu dropdown-menu-end mb-navbar-dropdown">
                             <li class="dropdown-item-text text-muted small"><i class="bi bi-person-circle"></i> {{ user.username }}</li>
                             <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'accounts:profile' %}"><i class="bi bi-person-gear"></i> {% trans "حسابي" %}</a></li>
+                            <li><a class="dropdown-item" href="{% url 'documents:trash' %}"><i class="bi bi-trash3"></i> {% trans "سلة المحذوفات" %}</a></li>
                             <li><a class="dropdown-item" href="{% url 'documents:archive_export' %}" data-no-spinner><i class="bi bi-download"></i> {% trans "تصدير أرشيف كامل" %}</a></li>
                             <li>
                                 <button type="button" class="dropdown-item mb-logout-trigger" id="mbLogoutBtn"><i class="bi bi-box-arrow-right"></i> {% trans "تسجيل الخروج" %}</button>

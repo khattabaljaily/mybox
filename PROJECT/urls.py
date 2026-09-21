@@ -1,7 +1,5 @@
-from django.conf import settings
 from django.contrib import admin
-from django.urls import include, path, re_path
-from django.views.static import serve as serve_static
+from django.urls import include, path
 
 from apps.core.views import service_worker
 
@@ -14,9 +12,7 @@ urlpatterns = [
     path('documents/', include('apps.documents.urls')),
     path('notifications/', include('apps.notifications.urls')),
     path('api/', include('apps.api.urls')),
-    re_path(
-        r'^media/(?P<path>.*)$',
-        serve_static,
-        {'document_root': settings.MEDIA_ROOT},
-    ),
+    # Uploaded files are deliberately NOT served from MEDIA_URL: they go through
+    # the permission-checked views in apps/documents/files.py. If a web server
+    # (nginx etc.) is configured to serve /media/ directly, remove that.
 ]

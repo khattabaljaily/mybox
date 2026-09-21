@@ -39,3 +39,14 @@ class OTPForm(forms.Form):
         if not code.isdigit():
             raise forms.ValidationError(_('الرمز يجب أن يتكون من أرقام فقط.'))
         return code
+
+
+class ProfileForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'phone']
+        labels = {
+            'first_name': _('الاسم الأول'),
+            'last_name': _('اسم العائلة'),
+            'phone': _('رقم الهاتف'),
+        }

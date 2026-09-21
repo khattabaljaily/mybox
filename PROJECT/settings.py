@@ -218,3 +218,15 @@ CORS_ALLOWED_ORIGINS = get_secret('CORS_ALLOWED_ORIGINS', [])
 # Each value fires its own reminder once (see apps.notifications management
 # command send_expiry_reminders, run daily via cron/scheduler).
 EXPIRY_REMINDER_DAYS = [30, 15, 7, 1]
+
+# Trash — soft-deleted documents are kept this long before purge_trash removes
+# them (and their files) for good. Run `manage.py purge_trash` daily.
+TRASH_RETENTION_DAYS = 30
+
+# AI-assisted reading of uploaded documents (expiry date etc., via the Claude API).
+# The feature is off unless ANTHROPIC_API_KEY is set in secrets.json.
+ANTHROPIC_API_KEY = get_secret('ANTHROPIC_API_KEY', '')
+ANTHROPIC_MODEL = get_secret('ANTHROPIC_MODEL', 'claude-opus-5')
+AI_EXTRACTION_ENABLED = bool(ANTHROPIC_API_KEY)
+AI_EXTRACTION_HOURLY_LIMIT = int(get_secret('AI_EXTRACTION_HOURLY_LIMIT', 30))
+AI_EXTRACTION_MAX_BYTES = 10 * 1024 * 1024
