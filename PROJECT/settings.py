@@ -65,16 +65,20 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'widget_tweaks',
+    'rest_framework',
+    'corsheaders',
     'apps.core',
     'apps.accounts',
     'apps.documents',
     'apps.notifications',
+    'apps.api',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -185,6 +189,30 @@ MESSAGE_TAGS = {
     messages.ERROR: 'alert-danger',
 }
 
+
+# REST framework + JWT
+from datetime import timedelta as _td
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+    ),
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': _td(days=1),
+    'REFRESH_TOKEN_LIFETIME': _td(days=30),
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}
+
+CORS_ALLOW_ALL_ORIGINS = get_secret('CORS_ALLOW_ALL_ORIGINS', True)
+CORS_ALLOWED_ORIGINS = get_secret('CORS_ALLOWED_ORIGINS', [])
 
 # Expiry reminders — how many days ahead of a document's expiry_date to notify.
 # Each value fires its own reminder once (see apps.notifications management
